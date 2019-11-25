@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    <style lang="less" scoped>
+        *{
+          margin:0;
+          padding:0;
+          box-sizing: border-box;
+        }
+        #view-box{
+            overflow: hidden;
+            border: 1px solid #ccc;
+            position:relative;
+        }
+        #view-box .item{
+            padding: 10px;
+            position: absolute;
+            border: 1px solid #eee;
+            background:#fff;
+        }
+        #view-box .item .coor { width: 10px; height: 10px; overflow: hidden; cursor: se-resize; position: absolute; right: 0; bottom: 0; background-color: #09C; }
+    </style>
+    <title>app</title>
+  </head>
+  <body>
+    <div id="app">
+        <div style="padding:20px;">
+            <el-row>
+                <el-select v-model="selectItemType">
+                    <el-option :value="i" :label="i" v-for="(i, index) in localItemTypeList" :key="index"></el-option>
+                </el-select>
+                <el-button @click="addNode" type="primary">add</el-button>
+                <el-button @click="dialogVisible = true" type="primary">预览</el-button>
+            </el-row>
+
+            <br/>
+    
+            <div class="content" :class="{'auto':status==='auto'}" id="view-box" :style="{width:boxWidth,height:boxHeight}">
+                <div class="item"
+                v-for="(i, index) in itemList" 
+                :key="index" 
+                :id="i.id"
+                :style="{width:i.width + 'px',height:i.height + 'px',zIndex:i.zIndex,top:i.top + 'px',left:i.left + 'px'}">
+                    <div>{{i.type}}</div>
+                    <br>
+                    <el-row><el-input v-model="i.value" placeholder="填写url或文字，多个url‘,’分隔"></el-input></el-row>
+                    <br>
+                    <el-row><el-button type="primary">保存</el-button></el-row>
+                    <div :id="i.coorId" class="coor" v-if="status !== 'auto'"></div>
+                </div>
+            </div>
+    
+            <mView :itemList="itemList" :status="status" :gridConfig="gridConfig" v-if="dialogVisible" @close="dialogVisible = false"></mView>
+        </div>
+    </div>
+  </body>
+  <script src="https://cdn.jsdelivr.net/npm/vue@2.6.0"></script>
+  <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+  <script src="./js/jquery-1.11.0.min.js"></script>
+  <script src="./js/drag.js"></script>
+  <script>
+    new Vue({
+      el:'#app',
+      data(){
+        return {
+          dialogVisible: false,
+          status: 'handle',
+          boxNode:{},
+          boxNodeOffsetTop: 0,
+          boxNodeOffsetLeft: 0,
+          boxWidth: '1000px',
+          boxHeight: '600px',
+          selectItemType: '',
+          localItemTypeList: ['image','swiper','text','video'],
+          itemList: [],
+          rowNum: '',
+          colNum: '',
+        }
+      },
+      created() {
+
+      },
+      mounted() {
+        this.boxNode = document.getElementById('view-box')
+        this.boxNodeOffsetTop = this.boxNode.offsetTop
+        this.boxNodeOffsetLeft = this.boxNode.offsetLeft
+      },
+      methods: {
+        addNode() {
+            let num = this.itemList.length
+            this.status = 'handle'
+            this.itemList.push({
+                type:this.selectItemType,
+                id:'item'+num,
+                width:'300',
+                height:'180',
+                zIndex: num + 1,
+                coorId: 'coor'+num,
+                top: '',
+                left: '',
+                value: ''
+            })
+            this.$nextTick(() => {
+                this.setDrag('#item'+num, '#coor'+num, num)
+            })
+        },
+        setDrag(dom, coorId, index) {
+            let boxNodeOffsetTop = this.boxNodeOffsetTop, boxNodeOffsetLeft = this.boxNodeOffsetLeft, vm = this
+            let $box = $(dom).mousedown(function(e) {
+                let offset = $(this).offset(), 
+                x = e.pageX - offset.left + boxNodeOffsetLeft, 
+                y = e.pageY - offset.top + boxNodeOffsetTop
+                
+                this.posix = {'x': x, 'y': y};
+                $.extend(document, {'move': true, 'move_target': this});
+            }).on('mousedown', coorId, function(e) {
+                var posix = {
+                        'w': $box.width(), 
+                        'h': $box.height(), 
+                        'x': e.pageX, 
+                        'y': e.pageY
+                    };
+                
+                $.extend(document, {'move': true, 'call_down': function(e) {
+                  console.log(e, posix)
+                    $box.css({
+                        'width': Math.max(30, e.pageX - posix.x + posix.w + 20),
+                        'height': Math.max(30, e.pageY - posix.y + posix.h + 20)
+                    });
+                }});
+                return false;
+            }).on('mouseup',function(e){
+                let target = e.target
+                target = vm.getParentNode(target, 'item')
+
+                vm.itemList[index]['top'] = target.offsetTop
+                vm.itemList[index]['left'] = target.offsetLeft
+                vm.itemList[index]['width'] = target.offsetWidth
+                vm.itemList[index]['height'] = target.offsetHeight
+            })
+        },
+        autoCreate() {
+            this.itemList = []
+            this.status = 'auto'
+            let num = this.rowNum * this.colNum
+            this.boxNode.style.display = 'grid'
+            this.boxNode.style.gridTemplateColumns = this.gridConfig.gridTemplateColumns = 'repeat('+this.rowNum+', '+(100/this.rowNum)+'%)'
+            this.boxNode.style.gridTemplateRows = this.gridConfig.gridTemplateRows = 'repeat('+this.colNum+', '+(100/this.colNum)+'%)'
+            for(let i=0;i<num;i++){
+                this.itemList.push({
+                    type:'text',
+                    id:'item'+i,
+                    zIndex: i + 1,
+                    value:''
+                })
+            }
+        },
+        getParentNode(target, parentClass) {
+            let resultTarget = target
+            if(resultTarget.className !== parentClass){
+                return this.getParentNode(resultTarget.parentNode, parentClass)
+            }else{
+                return resultTarget
+            }
+        }
+      },
+      computed: {
+
+      }
+    })
+  </script>
+</html>
