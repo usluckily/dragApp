@@ -53,7 +53,7 @@
                 </div>
             </div>
     
-            <mView :itemList="itemList" :status="status" :gridConfig="gridConfig" v-if="dialogVisible" @close="dialogVisible = false"></mView>
+            <!-- <mView :itemList="itemList" :status="status" :gridConfig="gridConfig" v-if="dialogVisible" @close="dialogVisible = false"></mView> -->
         </div>
     </div>
   </body>
@@ -87,8 +87,14 @@
         this.boxNode = document.getElementById('view-box')
         this.boxNodeOffsetTop = this.boxNode.offsetTop
         this.boxNodeOffsetLeft = this.boxNode.offsetLeft
+        this.init()
       },
       methods: {
+        init() {
+          this.itemList.forEach((item,num) => {
+            this.setDrag('#item'+num, '#coor'+num, num)
+          })
+        },
         addNode() {
             let num = this.itemList.length
             this.status = 'handle'
