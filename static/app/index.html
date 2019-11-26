@@ -81,7 +81,10 @@
         }
       },
       created() {
-
+        let data = {"t":1574765124376,"username":"nancy.miao","password":"123456","uuid":"f65c022b-5879-4e8b-8656-3d737b13cd4f","captcha":"5e3mf"}
+        $.post('/proxyApi/sys/login',  (data) => {
+          
+        })
       },
       mounted() {
         this.boxNode = document.getElementById('view-box')

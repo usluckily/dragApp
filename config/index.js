@@ -10,7 +10,22 @@ module.exports = {
     // Paths
     assetsSubDirectory: 'static',
     assetsPublicPath: '/',
-    proxyTable: {},
+    proxyTable: {
+      '/proxyApi': {
+          target: 'http://172.16.2.52:9508/ticket',
+          changeOrigin: true,
+          secure: false,
+          pathRewrite: {
+            '^/proxyApi': ''
+          },
+          onProxyReq(proxyReq) {
+            console.log('1111')
+            if (proxyReq.getHeader("origin")) {
+              proxyReq.setHeader("origin", 'http://172.16.2.52:9508/ticket')
+            }
+          }
+      }
+    },
 
     // Various Dev Server settings
     host: 'localhost', // can be overwritten by process.env.HOST
