@@ -11,6 +11,11 @@
           padding:0;
           box-sizing: border-box;
         }
+        .between-flex{
+          display:flex;
+          justify-content: space-between;
+          align-items: center;
+        }
         #view-box{
             overflow: hidden;
             border: 1px solid #ccc;
@@ -23,6 +28,26 @@
             background:#fff;
         }
         #view-box .item .coor { width: 10px; height: 10px; overflow: hidden; cursor: se-resize; position: absolute; right: 0; bottom: 0; background-color: #09C; }
+        #imageDialog, #videoDialog{
+          min-height:300px;
+          display:flex;
+          justify-content: flex-start;
+          align-items: center;	
+          flex-wrap: wrap;	
+          align-content: stretch;
+        }
+        .img-box{
+          width:100px;
+          height:100px;
+          margin:5px;
+          cursor: pointer;
+        }
+        #imageDialog .img-box:first-child, #imageDialog .img-box:nth-child(7n+1){
+          margin-left:0;
+        }
+        #imageDialog .img-box:nth-child(7n){
+          margin-right:0;
+        }
     </style>
     <title>app</title>
   </head>
@@ -45,21 +70,40 @@
                 :key="index" 
                 :id="i.id"
                 :style="{width:i.width + 'px',height:i.height + 'px',zIndex:i.zIndex,top:i.top + 'px',left:i.left + 'px'}">
-                    <div>{{i.type}}</div>
+                    <div class="between-flex">
+                      <span>{{i.type}}</span>
+                      <span @click="removeItems(index)"><i class="el-icon-close"></i></span>
+                    </div>
                     <br>
-                    <!-- <el-row><el-input v-model="i.value" placeholder="填写url或文字，多个url‘,’分隔"></el-input></el-row> -->
-                    <!-- <br> -->
                     <el-row>
-                      <el-select v-model="i.type">
+                      <el-select v-model="i.type" size="mini">
                         <el-option :value="j" :label="j" v-for="(j, index) in localItemTypeList" :key="index"></el-option>
                       </el-select>
                     </el-row>
                     <br>
-                    <el-row v-if="i.type !== 'text'">
-                      <el-button v-if="i.type === 'video'" type="success" size="mini" @click="showVideo()">选择视频</el-button>
-                      <el-button v-else type="success" size="mini" @click="showImage()">选择图片</el-button>
+                    <el-row>
+                      <!-- image -->
+                      <div v-if="i.type === 'image'">
+                          <el-button type="success" size="mini" @click="showImage(index)">选择图片</el-button>
+                      </div>
+
+                      <!-- swiper -->
+                      <div v-if="i.type === 'swiper'">
+                          <el-button type="success" size="mini" @click="showImage(index)">选择图片</el-button>
+                      </div>
+
+                      <!-- text -->
+                      <div v-if="i.type === 'text'">
+                        <el-input type="textarea" v-model="i.value"></el-input>
+                      </div>
+
+                      <!-- video -->
+                      <div v-if="i.type === 'video'">
+                          <el-button type="success" size="mini" @click="showVideo(index)">选择视频</el-button>
+                      </div>
                     </el-row>
-                    <!-- <el-row><el-button type="success">保存</el-button></el-row> -->
+
+                    <!--  -->
                     <div :id="i.coorId" class="coor" v-if="status !== 'auto'"></div>
                 </div>
             </div>
@@ -69,7 +113,14 @@
               :visible.sync="imageDialogVisible"
               width="800px">
               <div id="imageDialog" style="min-height:300px">
-
+                  <div class="img-box" v-for="(url, index) in testUrls">
+                      <el-image
+                      style="width: 100px; height: 100px;border-radius: 10px;"
+                      @click="chooseImage(index)"
+                      :src="url"
+                      :key="index"
+                      fit="cover"></el-image>
+                  </div>
               </div>
               <span slot="footer" class="dialog-footer">
                 <el-button @click="imageDialogVisible = false">取 消</el-button>
@@ -89,7 +140,6 @@
                 <el-button type="success" @click="videoDialogVisible = false">确 定</el-button>
               </span>
             </el-dialog>
-    
             <!-- <mView :itemList="itemList" :status="status" :gridConfig="gridConfig" v-if="dialogVisible" @close="dialogVisible = false"></mView> -->
         </div>
     </div>
@@ -98,13 +148,16 @@
   <script src="./js/element-ui.js"></script>
   <script src="./js/jquery-1.11.0.min.js"></script>
   <script src="./js/drag.js"></script>
+  <script src="./js/api.js"></script>
   <script>
     new Vue({
       el:'#app',
       data(){
         return {
           imageDialogVisible: false,
+          imageDialogLoading: {},
           videoDialogVisible: false,
+          videoDialogLoading: {},
           status: 'handle',
           boxNode:{},
           boxNodeOffsetTop: 0,
@@ -118,12 +171,30 @@
           selectItemType: '',
           localItemTypeList: ['image','swiper','text','video'],
           itemList: [],
+          currentItemIndex:'',
           rowNum: '',
           colNum: '',
+
+          //mock
+          testUrls: [
+          'https://fuss10.elemecdn.com/a/3f/3302e58f9a181d2509f3dc0fa68b0jpeg.jpeg',
+          'https://fuss10.elemecdn.com/1/34/19aa98b1fcb2781c4fba33d850549jpeg.jpeg',
+          'https://fuss10.elemecdn.com/0/6f/e35ff375812e6b0020b6b4e8f9583jpeg.jpeg',
+          'https://fuss10.elemecdn.com/9/bb/e27858e973f5d7d3904835f46abbdjpeg.jpeg',
+          'https://fuss10.elemecdn.com/d/e6/c4d93a3805b3ce3f323f7974e6f78jpeg.jpeg',
+          'https://fuss10.elemecdn.com/3/28/bbf893f792f03a54408b3b7a7ebf0jpeg.jpeg',
+          'https://fuss10.elemecdn.com/2/11/6535bcfb26e4c79b48ddde44f4b6fjpeg.jpeg',
+          'https://fuss10.elemecdn.com/a/3f/3302e58f9a181d2509f3dc0fa68b0jpeg.jpeg',
+          'https://fuss10.elemecdn.com/1/34/19aa98b1fcb2781c4fba33d850549jpeg.jpeg',
+          'https://fuss10.elemecdn.com/0/6f/e35ff375812e6b0020b6b4e8f9583jpeg.jpeg',
+          'https://fuss10.elemecdn.com/3/28/bbf893f792f03a54408b3b7a7ebf0jpeg.jpeg',
+          'https://fuss10.elemecdn.com/2/11/6535bcfb26e4c79b48ddde44f4b6fjpeg.jpeg',
+          ]
         }
       },
       created() {
-
+        api.login()
+        // api.getImageList()
       },
       mounted() {
         this.boxNode = document.getElementById('view-box')
@@ -141,7 +212,7 @@
             let num = this.itemList.length
             this.status = 'handle'
             this.itemList.push({
-                type:this.selectItemType,
+                type:'image',
                 id:'item'+num,
                 width:'300',
                 height:'180',
@@ -154,6 +225,15 @@
             this.$nextTick(() => {
                 this.setDrag('#item'+num, '#coor'+num, num)
             })
+        },
+        removeItems(index) {
+          this.$confirm('是否移除该模块?', '提示', {
+            confirmButtonText: '确定',
+            cancelButtonText: '取消',
+            type: 'warning'
+          }).then(() => {
+            this.itemList.splice(index, 1)
+          })
         },
         setDrag(dom, coorId, index) {
             let boxNodeOffsetTop = this.boxNodeOffsetTop, boxNodeOffsetLeft = this.boxNodeOffsetLeft, vm = this
@@ -173,7 +253,6 @@
                     };
                 
                 $.extend(document, {'move': true, 'call_down': function(e) {
-                  console.log(e, posix)
                     $box.css({
                         'width': Math.max(30, e.pageX - posix.x + posix.w + 20),
                         'height': Math.max(30, e.pageY - posix.y + posix.h + 20)
@@ -214,16 +293,27 @@
                 return resultTarget
             }
         },
-        showImage() {
+        showImage(index) {
+          this.currentItemIndex = index
           this.imageDialogVisible = true
           this.$nextTick(() => {
-            this.$loading({target:'#imageDialog',text:'图片加载中'})
+            this.imageDialogLoading = this.$loading({target:'#imageDialog',text:'图片加载中'})
+            setTimeout(() => {
+              this.imageDialogLoading.close()
+            }, 500)
           })
+        },
+        chooseImage(index) {
+          let current = this.currentItemIndex
+          this.itemList[current]
         },
         showVideo() {
           this.videoDialogVisible = true
           this.$nextTick(() => {
-            this.$loading({target:'#videoDialog',text:'视频加载中'})
+            this.videoDialogLoading = this.$loading({target:'#videoDialog',text:'视频加载中'})
+            setTimeout(() => {
+              this.videoDialogLoading.close()
+            }, 500)
           })
         }
       },
