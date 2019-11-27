@@ -3,7 +3,8 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1.0">
-    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    <link rel="stylesheet" href="./css/element-ui.css">
+    <link rel="stylesheet" href="./css/element-reset.css">
     <style lang="less" scoped>
         *{
           margin:0;
@@ -29,11 +30,11 @@
     <div id="app">
         <div style="padding:20px;">
             <el-row>
-                <el-select v-model="selectItemType">
-                    <el-option :value="i" :label="i" v-for="(i, index) in localItemTypeList" :key="index"></el-option>
+                <el-select v-model="screenType" placeholder="选择屏幕比例">
+                    <el-option :value="i.value" :label="i.label" v-for="(i, index) in screenTypeList" :key="index"></el-option>
                 </el-select>
-                <el-button @click="addNode" type="primary">add</el-button>
-                <el-button @click="dialogVisible = true" type="primary">预览</el-button>
+                <el-button @click="addNode" type="success">创建</el-button>
+                <el-button @click="dialogVisible = true" type="success">预览</el-button>
             </el-row>
 
             <br/>
@@ -46,19 +47,55 @@
                 :style="{width:i.width + 'px',height:i.height + 'px',zIndex:i.zIndex,top:i.top + 'px',left:i.left + 'px'}">
                     <div>{{i.type}}</div>
                     <br>
-                    <el-row><el-input v-model="i.value" placeholder="填写url或文字，多个url‘,’分隔"></el-input></el-row>
+                    <!-- <el-row><el-input v-model="i.value" placeholder="填写url或文字，多个url‘,’分隔"></el-input></el-row> -->
+                    <!-- <br> -->
+                    <el-row>
+                      <el-select v-model="i.type">
+                        <el-option :value="j" :label="j" v-for="(j, index) in localItemTypeList" :key="index"></el-option>
+                      </el-select>
+                    </el-row>
                     <br>
-                    <el-row><el-button type="primary">保存</el-button></el-row>
+                    <el-row v-if="i.type !== 'text'">
+                      <el-button v-if="i.type === 'video'" type="success" size="mini" @click="showVideo()">选择视频</el-button>
+                      <el-button v-else type="success" size="mini" @click="showImage()">选择图片</el-button>
+                    </el-row>
+                    <!-- <el-row><el-button type="success">保存</el-button></el-row> -->
                     <div :id="i.coorId" class="coor" v-if="status !== 'auto'"></div>
                 </div>
             </div>
+
+            <el-dialog
+              title="选择图片"
+              :visible.sync="imageDialogVisible"
+              width="800px">
+              <div id="imageDialog" style="min-height:300px">
+
+              </div>
+              <span slot="footer" class="dialog-footer">
+                <el-button @click="imageDialogVisible = false">取 消</el-button>
+                <el-button type="success" @click="imageDialogVisible = false">确 定</el-button>
+              </span>
+            </el-dialog>
+
+            <el-dialog
+              title="选择视频"
+              :visible.sync="videoDialogVisible"
+              width="800px">
+              <div id="videoDialog" style="min-height:300px">
+
+              </div>
+              <span slot="footer" class="dialog-footer">
+                <el-button @click="videoDialogVisible = false">取 消</el-button>
+                <el-button type="success" @click="videoDialogVisible = false">确 定</el-button>
+              </span>
+            </el-dialog>
     
             <!-- <mView :itemList="itemList" :status="status" :gridConfig="gridConfig" v-if="dialogVisible" @close="dialogVisible = false"></mView> -->
         </div>
     </div>
   </body>
-  <script src="https://cdn.jsdelivr.net/npm/vue@2.6.0"></script>
-  <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+  <script src="./js/vue.min.js"></script>
+  <script src="./js/element-ui.js"></script>
   <script src="./js/jquery-1.11.0.min.js"></script>
   <script src="./js/drag.js"></script>
   <script>
@@ -66,13 +103,18 @@
       el:'#app',
       data(){
         return {
-          dialogVisible: false,
+          imageDialogVisible: false,
+          videoDialogVisible: false,
           status: 'handle',
           boxNode:{},
           boxNodeOffsetTop: 0,
           boxNodeOffsetLeft: 0,
-          boxWidth: '1000px',
-          boxHeight: '600px',
+          screenType:'1920*1080',
+          screenTypeList:[
+            {value:'1920*1080',label:'16:9'},
+            {value:'1920*1440',label:'4:3'},
+            {value:'1920*1920',label:'1:1'}
+          ],
           selectItemType: '',
           localItemTypeList: ['image','swiper','text','video'],
           itemList: [],
@@ -174,10 +216,28 @@
             }else{
                 return resultTarget
             }
+        },
+        showImage() {
+          this.imageDialogVisible = true
+          this.$nextTick(() => {
+            this.$loading({target:'#imageDialog',text:'图片加载中'})
+          })
+        },
+        showVideo() {
+          this.videoDialogVisible = true
+          this.$nextTick(() => {
+            this.$loading({target:'#videoDialog',text:'视频加载中'})
+          })
         }
       },
       computed: {
-
+        boxWidth() {
+          return 1000 + 'px'
+        },
+        boxHeight() {
+          let w = this.screenType.split('*')[0], h = this.screenType.split('*')[1]
+          return h/w*parseFloat(this.boxWidth) + 'px'
+        }
       }
     })
   </script>
