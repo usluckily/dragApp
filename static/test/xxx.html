@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <title>app</title>
+  </head>
+  <body>
+    <div id="app">
+      <iframe name="test" id="xx" src="http://localhost:8080/static/test/iframe.html">
+        
+      </iframe>
+    </div>
+    <!-- built files will be auto injected -->
+  </body>
+  <script>
+    let ifr = document.getElementById('xx')
+    ifr.onload = () => {
+      console.log(ifr.contentWindow.document.getElementById('dog'))
+      console.log(ifr.contentDocument.getElementById('dog').textContent)
+    }
+  </script>
+</html>

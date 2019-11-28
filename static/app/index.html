@@ -151,11 +151,16 @@
                       <div class="img-box-check" v-if="i.checked">
                           <i class="el-icon-circle-check"></i>
                       </div>
+                      
                       <el-image
                       style="width: 100%; height: 100%;"
                       :src="i.url"
                       :key="index"
-                      fit="cover"></el-image>
+                      fit="cover">
+                        <div slot="error" class="image-slot">
+                          <i class="el-icon-picture-outline"></i>
+                        </div>  
+                      </el-image>
                   </div>
               </div>
               <span slot="footer" class="dialog-footer">
