@@ -11,19 +11,12 @@ module.exports = {
     assetsSubDirectory: 'static',
     assetsPublicPath: '/',
     proxyTable: {
-      '/proxyApi': {
-          target: 'http://172.16.2.52:9508/ticket',
-          changeOrigin: true,
-          secure: false,
-          pathRewrite: {
-            '^/proxyApi': ''
-          },
-          onProxyReq(proxyReq) {
-            console.log('1111')
-            if (proxyReq.getHeader("origin")) {
-              proxyReq.setHeader("origin", 'http://172.16.2.52:9508/ticket')
-            }
-          }
+      '/api': {
+        target: 'http://39.108.247.49:8081',
+        changeOrigin: true,
+        pathRewrite: {
+          '^/api': '/api'
+        }
       }
     },
 
