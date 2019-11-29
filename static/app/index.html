@@ -98,31 +98,36 @@
                     </div>
                     <br>
                     <el-row>
-                      <el-select v-model="i.type" size="mini">
+                      <el-select v-model="i.type" size="mini" @change="resetBox(index)">
                         <el-option :value="j" :label="j" v-for="(j, index) in localItemTypeList" :key="index"></el-option>
                       </el-select>
-                    </el-row>
-                    <br>
-                    <el-row class="normal-flex">
-                        <div class="img-box" 
-                        v-for="(j, jIndex) in i.value"
-                        style="width:20px;height:20px;border-radius:5px;margin:0;">
-                          <el-image
-                          style="width: 100%; height: 100%;"
-                          :src="j"
-                          :key="jIndex"
-                          fit="cover"></el-image>
-                        </div>
                     </el-row>
                     <br>
                     <el-row>
                       <!-- image -->
                       <div v-if="i.type === 'image'">
+                          <el-image
+                          style="width: 20px; height: 20px;"
+                          :src="i.value[0]"
+                          fit="cover"></el-image>
+                          <br>
                           <el-button type="success" size="mini" @click="showImage(index)">选择图片</el-button>
                       </div>
 
                       <!-- swiper -->
                       <div v-if="i.type === 'swiper'">
+                            <el-row class="normal-flex">
+                                <div class="img-box" 
+                                v-for="(j, jIndex) in i.value"
+                                :key="jIndex"
+                                style="width:20px;height:20px;border-radius:5px;margin:0;">
+                                  <el-image
+                                  style="width: 100%; height: 100%;"
+                                  :src="j"
+                                  fit="cover"></el-image>
+                                </div>
+                            </el-row>
+                            <br>
                           <el-button type="success" size="mini" @click="showImage(index)">选择图片</el-button>
                       </div>
 
@@ -212,7 +217,7 @@
           selectItemType: '',
           localItemTypeList: ['image','swiper','text','video'],
           itemList: [],
-          currentItemIndex:0,
+          currentItemIndex:0,//当前选中的item
           rowNum: '',
           colNum: '',
 
@@ -348,6 +353,10 @@
           if(typeof this.itemList[current].value == 'string'){
             this.itemList[current].value = []
           }
+          //如果选择的item type为image，只能添加一张图片
+          if(this.itemList[current].type == 'image' && this.itemList[current].value.length >= 1){
+            return this.itemList[current].value = [url]
+          }
           if(indexof === -1){
             this.itemList[current].value.push(url)
           }else{
@@ -363,6 +372,13 @@
               this.videoDialogLoading.close()
             }, 500)
           })
+        },
+        resetBox(index) {
+          let type = this.itemList[index].type
+          this.itemList[index].value = []
+          if(type == 'text'){
+            this.itemList[index].value = ''
+          }
         }
       },
       computed: {
