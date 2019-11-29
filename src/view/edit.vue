@@ -58,7 +58,8 @@
 
                     <!-- text -->
                     <div v-if="i.type === 'text'">
-                    <el-input type="textarea" v-model="i.value"></el-input>
+                      <span>字号：</span><el-input-number size="mini" v-model="i.font.size"></el-input-number>
+                      <el-input type="textarea" v-model="i.value"></el-input>
                     </div>
 
                     <!-- video -->
@@ -197,6 +198,10 @@ export default {
               coorId: 'coor'+num,
               top: '',
               left: '',
+              font:{
+                size:18,
+                color:'#000'
+              },
               value: []
           })
           this.$nextTick(() => {
@@ -315,7 +320,8 @@ export default {
         }
       },
       viewTemplate() {
-        this.$router.push({name:'view', params:{data:this.itemList}})
+        return this.dialogVisible = true
+        this.$router.push({name:'view', params:{data:this.itemList, editW:this.boxWidth, editH:this.boxHeight}})
       }
     },
     computed: {

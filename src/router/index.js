@@ -21,7 +21,8 @@ export default new Router({
     {
       path: '/view',
       name: 'view',
-      component: view
+      component: view,
+      props: true
     }
   ]
 })

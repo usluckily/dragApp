@@ -4,7 +4,7 @@
         <!-- <el-button @click="emitClose" type="danger">关闭</el-button> -->
     </div>
 
-    <div id="main-content" :class="{'grid-box':status == 'auto'}">
+    <div id="main-content" :class="{'grid-box':status == 'auto'}" @click="emitClose">
         <div class="box"
         v-for="(i, index) in localItemList" 
         :key="index" 
@@ -30,8 +30,14 @@
             style="width:100%;height:100%;"></video>
 
             <!-- text -->
-            <p v-else-if="i.type == 'text'" 
-            :style="{'text-align':'center'}">{{i.value}}</p>
+            <div 
+            class="text-box"
+            :style="{'font-size':i.font.size+'px'}"
+            v-else-if="i.type == 'text'">
+                <marquee>
+                    <p>{{i.value}}</p>
+                </marquee>
+            </div>
 
             <!-- image -->
             <el-image :src="i.value[0]" fit="fill" style="width:100%;height:100%;" v-else-if="i.type === 'image'"></el-image>
@@ -142,7 +148,7 @@ export default {
 
 <style lang="less" scoped>
 .box{
-    border:1px solid #ccc;
+    // border:1px solid #ccc;
     background:#fff;
 }
 #main-content{
@@ -155,6 +161,14 @@ export default {
     left:0;
     &.grid-box{
         display:grid;
+    }
+    .text-box{
+        text-align:center;
+        display:flex;
+        align-items: center;
+        width:100%;
+        height:100%;
+        padding:10px;
     }
 }
 .main-box{
