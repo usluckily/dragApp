@@ -23,16 +23,17 @@
             <!-- video -->
             <video 
             autoplay 
-            controls="false" 
-            object-fit="fill"
-            :src="i.value" 
+            loop
+            :src="i.value[0]" 
             v-else-if="i.type == 'video'" 
-            style="width:100%;height:100%;"></video>
+            style="width:100%;height:100%;object-fit:fill;background:#000;">
+                视频加载失败
+            </video>
 
             <!-- text -->
             <div 
             class="text-box"
-            :style="{'font-size':i.font.size+'px'}"
+            :style="{'font-size':i.font.size+'px', 'color':i.font.color}"
             v-else-if="i.type == 'text'">
                 <marquee>
                     <p>{{i.value}}</p>
@@ -47,6 +48,8 @@
 </template>
 
 <script>
+import api from '@/assets/js/api.js'
+
 export default {
     props:['itemList', 'status', 'editW', 'editH'],
     data(){
@@ -93,14 +96,34 @@ export default {
                     position:['530px','510px'],
                     text: 'ask打卡机圣诞卡上的卡刷道具卡和房价多少'
                 }
-            ]
+            ],
+            templateInfo:{
+                name:'',
+                screenModel:'',
+                type:'',
+                infoDesc:'',
+                textContent:'',
+                createTime:'',
+                pageLayout:{}
+            },
+            localItemList:[]
         }
     },
     beforeCreate() {
         document.documentElement.requestFullscreen();
     },
-    created() { 
-        console.log(this.$route)
+    created() {
+        let id = this.$route.query.id
+        if(id){
+            api.getTemplateInfo(id).then( res => {
+                // this.templateInfo = Object.assign(this.templateInfo, res)
+                this.templateInfo.pageLayout = JSON.parse(res.pageLayout)
+                this.localItemList = this.setLocalItemList()
+            })
+        }else{
+            this.localItemList = this.setLocalItemList()
+        }
+        
     },
     mounted() {
         
@@ -109,18 +132,26 @@ export default {
         
     },
     computed:{
-        localItemList(){
-            let res = this.$route.params
-            if(Object.keys(res).length){
-                return res.data
-            }
-            return this.itemList
+        localEditW() {
+            return this.editW || this.templateInfo.pageLayout.editW
+        },
+        localEditH() {
+            return this.editH || this.templateInfo.pageLayout.editH
         }
     },
     methods:{
+        setLocalItemList() {
+            let res = this.$route.params
+            if(Object.keys(res).length){//编辑预览切路由传输的数据
+                return res.data
+            }else if(Object.keys(this.templateInfo.pageLayout).length){//远程请求获取的数据
+                return this.templateInfo.pageLayout.itemList
+            }
+            return this.itemList//组件prop形式传输的数据
+        },
         styleComp(item) {
-            let widthScale = window.screen.width / parseFloat(this.editW),
-                heightScale = window.screen.height / parseFloat(this.editH)
+            let widthScale = window.screen.width / parseFloat(this.localEditW),
+                heightScale = window.screen.height / parseFloat(this.localEditH)
             return {
                 width:item.width * widthScale + 'px',
                 height:item.height * heightScale + 'px',

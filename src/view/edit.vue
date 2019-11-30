@@ -2,7 +2,7 @@
     <div style="padding:20px;">
         <el-row>
             <el-select v-model="screenType" placeholder="选择屏幕比例">
-                <el-option :value="i.value" :label="i.label" v-for="(i, index) in screenTypeList" :key="index"></el-option>
+                <el-option :value="key" :label="value" v-for="(value, key) in screenTypeMap" :key="key"></el-option>
             </el-select>
             <el-button @click="addNode" type="success">创建</el-button>
             <el-button @click="viewTemplate" type="success">预览</el-button>
@@ -58,12 +58,24 @@
 
                     <!-- text -->
                     <div v-if="i.type === 'text'">
-                      <span>字号：</span><el-input-number size="mini" v-model="i.font.size"></el-input-number>
+                      <el-row class="normal-flex">
+                        <div class="normal-flex">
+                          <span>字号：</span>
+                          <el-input-number size="mini" controls-position="right" v-model="i.font.size" min="0"></el-input-number>
+                          &nbsp;&nbsp;
+                        </div>
+                        <div class="normal-flex">
+                          <span>颜色：</span><el-color-picker v-model="i.font.color" size="mini"></el-color-picker>
+                        </div>
+                      </el-row>
+                      <br>
                       <el-input type="textarea" v-model="i.value"></el-input>
                     </div>
 
                     <!-- video -->
                     <div v-if="i.type === 'video'">
+                        <p>{{i.name}}</p>
+                        <br>
                         <el-button type="success" size="mini" @click="showVideo(index)">选择视频</el-button>
                     </div>
                 </el-row>
@@ -72,6 +84,27 @@
                 <div :id="i.coorId" class="coor" v-if="status !== 'auto'"></div>
             </div>
         </div>
+
+        <br>
+
+        <el-row style="width:400px;">
+          <el-form>
+            <el-form-item label="">
+              <el-input v-model="submitParams.name" placeholder="名称"></el-input>
+            </el-form-item>
+            <el-form-item label="">
+              <el-input v-model="submitParams.type" placeholder="类型"></el-input>
+            </el-form-item>
+            <el-form-item label="">
+              <el-input v-model="submitParams.infoDesc" placeholder="描述"></el-input>
+            </el-form-item>
+            <el-form-item label="">
+              <el-button type="success" @click="submit" :loading="submitLoading">创建模板</el-button>
+            </el-form-item>
+          </el-form>
+        </el-row>
+
+        {{submitParams}}
 
         <el-dialog
             title="选择图片"
@@ -105,7 +138,13 @@
             :visible.sync="videoDialogVisible"
             width="800px">
             <div id="videoDialog" style="min-height:300px">
-
+              <div 
+              @click="chooseVideo(i, index)"
+              style="margin-bottom:10px;" 
+              v-for="(i, index) in localVideoList" 
+              :key="index">
+                <p>{{i.fileName}}--{{i.checked}}</p>
+              </div>
             </div>
             <span slot="footer" class="dialog-footer">
             <el-button @click="videoDialogVisible = false">取 消</el-button>
@@ -126,6 +165,7 @@
 <script>
 import $ from 'jquery'
 import mView from './view'
+import api from '@/assets/js/api.js'
 require('@/assets/js/drag.js')
 
 export default {
@@ -134,21 +174,34 @@ export default {
   },
   data(){
       return {
+        submitLoading:false,
         imageDialogVisible: false,
         imageDialogLoading: {},
         videoDialogVisible: false,
         videoDialogLoading: {},
         dialogVisible:false,
         status: 'handle',
+        submitParams:{
+          name:'',
+          screenModel:'',
+          type:'',
+          infoDesc:'',
+          textContent:'',
+          createTime:'',
+          pageLayout:[]
+        },
         boxNode:{},
         boxNodeOffsetTop: 0,
         boxNodeOffsetLeft: 0,
         screenType:'1920*1080',
-        screenTypeList:[
-          {value:'1920*1080',label:'16:9'},
-          {value:'1920*1440',label:'4:3'},
-          {value:'1920*1920',label:'1:1'}
-        ],
+        // screenTypeList:[
+        //   {value:'1920*1080',label:'16:9'},
+        //   // {value:'1920*1440',label:'4:3'},
+        //   // {value:'1920*1920',label:'1:1'}
+        // ],
+        screenTypeMap:{
+          '1920*1080':'16:9'
+        }, 
         selectItemType: '',
         localItemTypeList: ['image','swiper','text','video'],
         itemList: [],
@@ -157,28 +210,42 @@ export default {
         colNum: '',
 
         //mock
-        testUrls: [
-        'https://fuss10.elemecdn.com/a/3f/3302e58f9a181d2509f3dc0fa68b0jpeg.jpeg',
-        'https://fuss10.elemecdn.com/1/34/19aa98b1fcb2781c4fba33d850549jpeg.jpeg',
-        'https://fuss10.elemecdn.com/0/6f/e35ff375812e6b0020b6b4e8f9583jpeg.jpeg',
-        'https://fuss10.elemecdn.com/9/bb/e27858e973f5d7d3904835f46abbdjpeg.jpeg',
-        'https://fuss10.elemecdn.com/d/e6/c4d93a3805b3ce3f323f7974e6f78jpeg.jpeg',
-        'https://fuss10.elemecdn.com/3/28/bbf893f792f03a54408b3b7a7ebf0jpeg.jpeg',
-        'https://fuss10.elemecdn.com/2/11/6535bcfb26e4c79b48ddde44f4b6fjpeg.jpeg',
-        'https://cube.elemecdn.com/6/94/4d3ea53c084bad6931a56d5158a48jpeg.jpeg',
-        'https://fuss10.elemecdn.com/e/5d/4a731a90594a4af544c0c25941171jpeg.jpeg'
-        ]
+        imageUrls: [
+        // 'https://fuss10.elemecdn.com/a/3f/3302e58f9a181d2509f3dc0fa68b0jpeg.jpeg',
+        // 'https://fuss10.elemecdn.com/1/34/19aa98b1fcb2781c4fba33d850549jpeg.jpeg',
+        // 'https://fuss10.elemecdn.com/0/6f/e35ff375812e6b0020b6b4e8f9583jpeg.jpeg',
+        // 'https://fuss10.elemecdn.com/9/bb/e27858e973f5d7d3904835f46abbdjpeg.jpeg',
+        // 'https://fuss10.elemecdn.com/d/e6/c4d93a3805b3ce3f323f7974e6f78jpeg.jpeg',
+        // 'https://fuss10.elemecdn.com/3/28/bbf893f792f03a54408b3b7a7ebf0jpeg.jpeg',
+        // 'https://fuss10.elemecdn.com/2/11/6535bcfb26e4c79b48ddde44f4b6fjpeg.jpeg',
+        // 'https://cube.elemecdn.com/6/94/4d3ea53c084bad6931a56d5158a48jpeg.jpeg',
+        // 'https://fuss10.elemecdn.com/e/5d/4a731a90594a4af544c0c25941171jpeg.jpeg'
+        ],
+        videoList: []
       }
     },
     created() {
-      // api.login()
-      // api.getImageList()
+      api.getImageList().then(res => {
+        this.imageUrls = res.rows.filter(item => {
+          return item.fileType == '图片'
+        })
+      })
+      api.getVideoList().then(res => {
+        this.videoList = res.rows.filter(item => {
+          return item.fileType == '视频'
+        })
+      })
     },
     mounted() {
       this.boxNode = document.getElementById('view-box')
       this.boxNodeOffsetTop = this.boxNode.offsetTop
       this.boxNodeOffsetLeft = this.boxNode.offsetLeft
-      this.init()
+      if(this.$route.query.id){
+        this.getTemplateInfo(this.$route.query.id)
+      }else{
+        this.init()
+      }
+      
     },
     methods: {
       init() {
@@ -198,6 +265,7 @@ export default {
               coorId: 'coor'+num,
               top: '',
               left: '',
+              name: '',
               font:{
                 size:18,
                 color:'#000'
@@ -251,22 +319,6 @@ export default {
               vm.itemList[index]['height'] = target.offsetHeight
           })
       },
-      autoCreate() {
-          this.itemList = []
-          this.status = 'auto'
-          let num = this.rowNum * this.colNum
-          this.boxNode.style.display = 'grid'
-          this.boxNode.style.gridTemplateColumns = this.gridConfig.gridTemplateColumns = 'repeat('+this.rowNum+', '+(100/this.rowNum)+'%)'
-          this.boxNode.style.gridTemplateRows = this.gridConfig.gridTemplateRows = 'repeat('+this.colNum+', '+(100/this.colNum)+'%)'
-          for(let i=0;i<num;i++){
-              this.itemList.push({
-                  type:'text',
-                  id:'item'+i,
-                  zIndex: i + 1,
-                  value:''
-              })
-          }
-      },
       getParentNode(target, parentClass) {
           let resultTarget = target
           if(resultTarget.className !== parentClass){
@@ -303,7 +355,8 @@ export default {
         }
         
       },
-      showVideo() {
+      showVideo(index) {
+        this.currentItemIndex = index
         this.videoDialogVisible = true
         this.$nextTick(() => {
           this.videoDialogLoading = this.$loading({target:'#videoDialog',text:'视频加载中'})
@@ -312,6 +365,11 @@ export default {
           }, 500)
         })
       },
+      chooseVideo(item, index) {
+        let current = this.currentItemIndex
+        this.itemList[current].value = [item.fileUrl]
+        this.itemList[current].name = item.fileName
+      },
       resetBox(index) {
         let type = this.itemList[index].type
         this.itemList[index].value = []
@@ -319,9 +377,41 @@ export default {
           this.itemList[index].value = ''
         }
       },
+      submit() {
+        this.submitLoading = true
+        let params = {
+          ...this.submitParams,
+          pageLayout:JSON.stringify({
+            itemList:this.itemList,
+            editW:this.boxWidth,
+            editH:this.boxHeight
+          })
+        }
+        params['submitParams'] = this.screenTypeMap[this.screenType]
+        params['type'] = this.screenType
+        api.submitTemplate(params).then(res => {
+          if(res.code !== 0) {
+            this.$message.error(res.msg)
+          }else{
+            this.$message.success(res.msg)
+          }
+          this.submitLoading = false
+        }).catch(e => {
+          this.$message.error('创建模板失败')
+          this.submitLoading = false
+        })
+      },
       viewTemplate() {
-        return this.dialogVisible = true
+        // return this.dialogVisible = true
         this.$router.push({name:'view', params:{data:this.itemList, editW:this.boxWidth, editH:this.boxHeight}})
+      },
+      getTemplateInfo(id) {
+        api.getTemplateInfo(id).then(res => {
+          this.itemList = JSON.parse(res.pageLayout).itemList
+          this.$nextTick(() => {
+            this.init()
+          })
+        })
       }
     },
     computed: {
@@ -334,20 +424,36 @@ export default {
       },
       localImgUrlList() {
         let current = this.currentItemIndex, 
-        remoteList = this.testUrls, 
+        remoteList = this.imageUrls, 
         checkedList = this.itemList.length ? this.itemList[current].value : []
 
         return remoteList.map((item, index) => {
           let res = false
           for(let i=0,len=checkedList.length;i<len;i++){
-            if(checkedList[i] === item){
+            if(checkedList[i] === item.fileUrl){
               res = true
               break
             }
           }
           return {
-            url:item,
+            url:item.fileUrl,
             checked:res
+          }
+        })
+      },
+      localVideoList() {
+        let arr = [
+          {name:'测试视频1', url:'https://demo-res.cloudinary.com/video/upload/w_0.4,a_20/l_cloudinary_icon,o_50,w_60,g_south_east,y_15,x_60/dog.webm'},
+          {name:'测试视频2', url:'https://demo-res.cloudinary.com/video/upload/w_0.4,a_20/l_cloudinary_icon,o_50,w_60,g_south_east,y_15,x_60/egg.webm'},
+          {name:'测试视频3', url:'https://demo-res.cloudinary.com/video/upload/w_0.4,a_20/l_cloudinary_icon,o_50,w_60,g_south_east,y_15,x_60/pig.webm'},
+        ]
+        arr = this.videoList
+        let current = this.currentItemIndex,
+        checkedUrl = this.itemList.length ? this.itemList[current].value[0] : ''
+        return arr.map(item => {
+          return {
+            ...item,
+            checked:checkedUrl === item.fileUrl ? true : false
           }
         })
       },
@@ -376,15 +482,19 @@ export default {
         position: absolute;
         border: 1px solid #eee;
         background:#fff;
+        overflow:auto;
     }
     #view-box .item .coor { width: 10px; height: 10px; overflow: hidden; cursor: se-resize; position: absolute; right: 0; bottom: 0; background-color: #09C; }
-    #imageDialog, #videoDialog{
+    #imageDialog{
         min-height:300px;
         display:flex;
         justify-content: flex-start;
         align-items: center;	
         flex-wrap: wrap;	
         align-content: stretch;
+    }
+    #videoDialog{
+      min-height:300px;
     }
     .img-box{
         width:100px;

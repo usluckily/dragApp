@@ -14,8 +14,12 @@ module.exports = {
       '/api': {
         target: 'http://39.108.247.49:8081',
         changeOrigin: true,
+        onProxyReq: function (proxyReq, req, res) {
+          //实在不知道代理后的路径，可以在这里打印出出来看看
+          console.log("原路径：" + req.originalUrl, "代理路径：" + req.path)
+        },
         pathRewrite: {
-          '^/api': '/api'
+          '^/api': ''
         }
       }
     },
@@ -51,7 +55,7 @@ module.exports = {
     // Paths
     assetsRoot: path.resolve(__dirname, '../dist'),
     assetsSubDirectory: 'static',
-    assetsPublicPath: '/',
+    assetsPublicPath: './',
 
     /**
      * Source Maps
