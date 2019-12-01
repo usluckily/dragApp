@@ -1,6 +1,6 @@
 
 let host = 'http://39.108.247.49:8081'
-let proxy = '/api'
+let proxy = ''
 import $ from 'jquery'
 
 // document.cookie = ''

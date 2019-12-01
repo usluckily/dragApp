@@ -1,6 +1,6 @@
 <template>
 <div>
-    <div style="position:fixed;top:0;left:0;z-index:9999">
+    <div style="position:fixed;top:0;left:0;z-index:9999" id="clickTrigger" @click="fullScreen">
         <!-- <el-button @click="emitClose" type="danger">关闭</el-button> -->
     </div>
 
@@ -110,7 +110,7 @@ export default {
         }
     },
     beforeCreate() {
-        document.documentElement.requestFullscreen();
+        
     },
     created() {
         let id = this.$route.query.id
@@ -126,7 +126,7 @@ export default {
         
     },
     mounted() {
-        
+        document.getElementById('clickTrigger').click()
     },
     beforeDestroy() {
         
@@ -140,6 +140,9 @@ export default {
         }
     },
     methods:{
+        fullScreen() {
+            document.documentElement.requestFullscreen();
+        },
         setLocalItemList() {
             let res = this.$route.params
             if(Object.keys(res).length){//编辑预览切路由传输的数据
@@ -161,7 +164,7 @@ export default {
             }
         },
         heightScale(val){
-            let heightScale = window.screen.height / parseFloat(this.editH)
+            let heightScale = window.screen.height / parseFloat(this.localEditH)
             return val * heightScale
         },
         renderContent() {

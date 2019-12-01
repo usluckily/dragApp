@@ -5,7 +5,7 @@
                 <el-option :value="key" :label="value" v-for="(value, key) in screenTypeMap" :key="key"></el-option>
             </el-select>
             <el-button @click="addNode" type="success">创建</el-button>
-            <el-button @click="viewTemplate" type="success">预览</el-button>
+            <el-button @click="viewTemplate" type="success" id="testx">预览</el-button>
         </el-row>
 
         <br/>
@@ -103,8 +103,6 @@
             </el-form-item>
           </el-form>
         </el-row>
-
-        {{submitParams}}
 
         <el-dialog
             title="选择图片"
@@ -245,7 +243,6 @@ export default {
       }else{
         this.init()
       }
-      
     },
     methods: {
       init() {
