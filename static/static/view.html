@@ -1,57 +1,16 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh_CN" xmlns:th="http://www.thymeleaf.org" xmlns:shiro="http://www.pollix.at/thymeleaf/shiro">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1.0">
     <link rel="stylesheet" href="./css/element-ui.css">
     <link rel="stylesheet" href="./css/element-reset.css">
     <link rel="stylesheet" href="./css/base.css">
-    <style lang="less" scoped>
-        .box{
-            /* border:1px solid #ccc; */
-            background:#fff;
-        }
-        #main-content{
-            position: fixed;
-            width: 100%;
-            height: 100%;
-            z-index: 999;
-            background:#fff;
-            top:0;
-            left:0;
-            
-        }
-        #main-content .grid-box{
-            display:grid;
-        }
-        #main-content .text-box{
-            text-align:center;
-            display:flex;
-            align-items: center;
-            width:100%;
-            height:100%;
-            padding:10px;
-        }
-        .main-box{
-            width:100%;
-            height:500px;
-            position: relative;
-        }
-        #content{
-            height: 100%;
-            display: grid;
-            grid-template-columns: repeat(3, 33.33%);
-            grid-template-rows: 33.33% 33.33% 33.33%;
-        }
-        #content > div{
-            border:1px solid #ccc;
-            /* height:100px; */
-        }
-    </style>
     <title>app</title>
   </head>
   <body>
     <div id="app">
+    <input type="hidden"  id="id" name="id" th:value="${id}" style="display:none;">
       <div>
         <div style="position:fixed;top:0;left:0;z-index:9999" id="clickTrigger" @click="fullScreen">
             <!-- <el-button @click="emitClose" type="danger">关闭</el-button> -->
@@ -127,9 +86,10 @@
         
     },
     created() {
-        // let id = this.$route.query.id
-        let id = location.href.split('?')[1].split('=')[1]
-        // alert(id)
+        
+    },
+    mounted() {
+        let id = document.getElementById('id').value
         if(id){
             api.getTemplateInfo(id).then( res => {
                 // this.templateInfo = Object.assign(this.templateInfo, res)
@@ -137,12 +97,9 @@
                 this.localItemList = this.setLocalItemList()
             })
         }else{
+            this.templateInfo.pageLayout = JSON.parse(sessionStorage.getItem('pageLayout'))
             this.localItemList = this.setLocalItemList()
         }
-        
-    },
-    mounted() {
-        // document.getElementById('clickTrigger').click()
     },
     beforeDestroy() {
         
