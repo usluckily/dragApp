@@ -100,6 +100,9 @@ body{
     #videoDialog{
       min-height:300px;
     }
+    #videoDialog .checked{
+        color:#18a689;
+    }
     .img-box{
         width:100px;
         height:100px;

@@ -22,6 +22,7 @@
 
             <!-- video -->
             <video 
+            muted
             autoplay 
             loop
             :src="i.value[0]" 

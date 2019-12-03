@@ -11,8 +11,8 @@
   <body>
     <div id="app">
       <!-- 隐藏域 -->
-      <input type="hidden"  id="templateId" name="id" th:value="${id}" style="display:none;">
-      <input type="hidden"  id="userId" name="id" th:value="${id}" style="display:none;">
+      <input type="hidden"  id="templateId" name="templateId" th:value="${templateId}" style="display:none;">
+      <input type="hidden"  id="userId" name="userId" th:value="${userId}" style="display:none;">
 
       <div style="padding:20px;">
         <el-row>
@@ -158,10 +158,11 @@
             <div id="videoDialog" style="min-height:300px">
               <div 
               @click="chooseVideo(i, index)"
+              :class="{'checked':i.checked}"
               style="margin-bottom:10px;" 
               v-for="(i, index) in localVideoList" 
               :key="index">
-                <p>{{i.fileName}}--{{i.checked}}</p>
+                <p><i class="el-icon-circle-check"></i>&nbsp;&nbsp;{{i.fileName}}</p>
               </div>
             </div>
             <span slot="footer" class="dialog-footer">
@@ -399,12 +400,12 @@
           })
         },
         viewTemplate() {
-          sessionStorage.setItem('pageLayout', JSON.stringify({
+          localStorage.setItem('pageLayout', JSON.stringify({
             itemList:this.itemList,
             editW:this.boxWidth,
             editH:this.boxHeight
           }))
-          location.href = './view.html'
+          window.top.open('./view.html')
         },
         getTemplateInfo(id) {
           api.getTemplateInfo(id).then(res => {
