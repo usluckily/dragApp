@@ -77,10 +77,41 @@
                         <div class="normal-flex">
                           <span>字号：</span>
                           <el-input-number size="mini" controls-position="right" v-model="i.font.size" min="0"></el-input-number>
-                          &nbsp;&nbsp;
                         </div>
+                        &nbsp;&nbsp;
                         <div class="normal-flex">
                           <span>颜色：</span><el-color-picker v-model="i.font.color" size="mini"></el-color-picker>
+                        </div>
+                        &nbsp;&nbsp;
+                        <div class="normal-flex">
+                          <span>背景：</span><el-color-picker v-model="i.font.bgColor" size="mini"></el-color-picker>
+                        </div>
+                        &nbsp;&nbsp;
+                        <div class="normal-flex">
+                          <span>滚动：</span><el-checkbox v-model="i.font.scroll"></el-checkbox>
+                        </div>
+                        &nbsp;&nbsp;
+                        <div class="normal-flex">
+                          <span>方向：</span>
+                          <el-switch
+                            :disabled="!i.font.scroll"
+                            v-model="i.font.direction"
+                            active-color="#18a689"
+                            inactive-color="#ff4949"
+                            active-value="left"
+                            active-text="left"
+                            inactive-value="right"
+                            inactive-text="right">
+                          </el-switch>
+                        </div>
+                        &nbsp;&nbsp;
+                        <div class="normal-flex">
+                          <span>位置：</span>
+                          <el-radio-group v-model="i.font.site">
+                            <el-radio label="left">居左</el-radio>
+                            <el-radio label="center">居中</el-radio>
+                            <el-radio label="right">居右</el-radio>
+                          </el-radio-group>
                         </div>
                       </el-row>
                       <br>
@@ -89,13 +120,25 @@
 
                     <!-- video -->
                     <div v-if="i.type === 'video'">
-                        <p>{{i.name}}</p>
+                        <p style="font-size:12px;">{{i.name}}</p>
                         <br>
                         <el-button type="success" size="mini" @click="showVideo(index)">选择视频</el-button>
                     </div>
                 </el-row>
 
-                <el-row style="position: absolute;bottom: 5px;font-size:12px;">
+                <el-row style="position:absolute;bottom:10px;font-size:12px;">
+                  <!-- <div>
+                    W:<el-input-number size="mini" min="0" controls-position="right" v-model="i.width"></el-input-number>
+                  </div>
+                  <div>
+                    H:<el-input-number size="mini" min="0" controls-position="right" v-model="i.height"></el-input-number>
+                  </div>
+                  <div>
+                    L:<el-input-number size="mini" min="0" controls-position="right" v-model="i.left"></el-input-number>
+                  </div>
+                  <div>
+                    T:<el-input-number size="mini" min="0" controls-position="right" v-model="i.top"></el-input-number>
+                  </div> -->
                   W:{{i.width | scaleFilter(scale)}}&nbsp;&nbsp;H:{{i.height | scaleFilter(scale)}}
                   &nbsp;&nbsp;L:{{i.left | scaleFilter(scale)}}&nbsp;&nbsp;T:{{i.top | scaleFilter(scale)}}
                 </el-row>
@@ -108,18 +151,21 @@
         <br>
 
         <el-row style="width:400px;">
-          <el-form>
-            <el-form-item label="">
+          <el-form :rules="submitRules" ref="ruleForm" :model="submitParams">
+            <el-form-item label="" prop="name">
               <el-input v-model="submitParams.name" placeholder="名称"></el-input>
             </el-form-item>
             <el-form-item label="">
-              <el-input v-model="submitParams.type" placeholder="类型"></el-input>
+              <el-input disabled v-model="submitParams.type" placeholder="类型"></el-input>
+            </el-form-item>
+            <el-form-item label="">
+              <el-input disabled v-model="submitParams.screenModel" placeholder="screenModel"></el-input>
             </el-form-item>
             <el-form-item label="">
               <el-input v-model="submitParams.infoDesc" placeholder="描述"></el-input>
             </el-form-item>
             <el-form-item label="">
-              <el-button type="success" @click="submit" :loading="submitLoading">创建模板</el-button>
+              <el-button type="success" @click="submit" :loading="submitLoading">保存模板</el-button>
             </el-form-item>
           </el-form>
         </el-row>
@@ -192,12 +238,17 @@
           status: 'handle',
           submitParams:{
             name:'',
-            screenModel:'',
-            type:'',
+            screenModel:'16:9',
+            type:'1920*1080',
             infoDesc:'',
             textContent:'',
             createTime:'',
             pageLayout:[]
+          },
+          submitRules:{
+            name:[
+              { required: true, message: '请输入名称', trigger: 'blur' },
+            ]
           },
           boxNode:{},
           boxNodeOffsetTop: 0,
@@ -265,7 +316,11 @@
                 name: '',
                 font:{
                   size:18,
-                  color:'#000'
+                  color:'#000',
+                  bgColor:'#fff',
+                  scroll:true,
+                  direction:'left',
+                  site:'center'
                 },
                 value: []
             })
@@ -372,9 +427,22 @@
           this.itemList[index].value = []
           if(type == 'text'){
             this.itemList[index].value = ''
+            this.itemList[index].width = parseInt(this.boxWidth)
           }
         },
         submit() {
+          let res = true
+          this.$refs['ruleForm'].validate((valid) => {
+            if (valid) {
+              
+            } else {
+              
+              res = false;
+            }
+          });
+
+          if(!res) return
+
           this.submitLoading = true
           let params = {
             ...this.submitParams,
@@ -394,6 +462,10 @@
               this.$message.success(res.msg)
             }
             this.submitLoading = false
+
+            parent.reLoad();
+            let index = parent.layer.getFrameIndex(window.name)
+            parent.layer.close(index);
           }).catch(e => {
             this.$message.error('创建模板失败')
             this.submitLoading = false

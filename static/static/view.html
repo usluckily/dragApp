@@ -50,11 +50,14 @@
                 <!-- text -->
                 <div 
                 class="text-box"
-                :style="{'font-size':i.font.size+'px', 'color':i.font.color}"
+                :style="{'font-size':i.font.size+'px', 'color':i.font.color, 'background':i.font.bgColor,'text-align':i.font.site}"
                 v-else-if="i.type == 'text'">
-                    <marquee>
+                    <marquee style="width:100%;" :direction="i.font.direction" v-if="i.font.scroll">
                         <p>{{i.value}}</p>
                     </marquee>
+                    <div style="width:100%;" v-else>
+                        <p>{{i.value}}</p>
+                    </div>
                 </div>
     
                 <!-- image -->
