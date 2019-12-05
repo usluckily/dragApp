@@ -10,7 +10,9 @@
   </head>
   <body>
     <div id="app">
-    <input type="hidden"  id="id" name="id" th:value="${id}" style="display:none;">
+        <!-- 隐藏域 -->
+        <input type="hidden"  id="id" name="id" th:value="${id}" style="display:none;">
+        <input type="hidden"  id="textContent" name="textContent" th:value="${textContent}" style="display:none;">
       <div>
         <div style="position:fixed;top:0;left:0;z-index:9999" id="clickTrigger" @click="fullScreen">
             <!-- <el-button @click="emitClose" type="danger">关闭</el-button> -->
@@ -125,7 +127,16 @@
             document.documentElement.requestFullscreen();
         },
         setLocalItemList() {
-          return this.templateInfo.pageLayout.itemList
+            let textContent = document.getElementById('textContent').value
+            if(textContent){
+                this.templateInfo.pageLayout.itemList.map(item => {
+                    if(item.type === 'text'){
+                        item.value = textContent
+                    }
+                    return textContent
+                })
+            }
+            return this.templateInfo.pageLayout.itemList
         },
         styleComp(item) {
             let widthScale = window.screen.width / parseFloat(this.localEditW),

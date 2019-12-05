@@ -73,6 +73,16 @@
 
                     <!-- text -->
                     <div v-if="i.type === 'text'">
+                      <el-row>
+                          <div class="normal-flex">
+                            <span>位置：</span>
+                            <el-radio-group v-model="i.font.site">
+                              <el-radio label="left">居左</el-radio>
+                              <el-radio label="center">居中</el-radio>
+                              <el-radio label="right">居右</el-radio>
+                            </el-radio-group>
+                          </div>
+                      </el-row>
                       <el-row class="normal-flex">
                         <div class="normal-flex">
                           <span>字号：</span>
@@ -103,15 +113,6 @@
                             inactive-value="right"
                             inactive-text="right">
                           </el-switch>
-                        </div>
-                        &nbsp;&nbsp;
-                        <div class="normal-flex">
-                          <span>位置：</span>
-                          <el-radio-group v-model="i.font.site">
-                            <el-radio label="left">居左</el-radio>
-                            <el-radio label="center">居中</el-radio>
-                            <el-radio label="right">居右</el-radio>
-                          </el-radio-group>
                         </div>
                       </el-row>
                       <br>

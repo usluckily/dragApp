@@ -27,53 +27,53 @@ body{
           border: 1px solid #ccc;
           position:relative;
       }
-      #view-box .item{
-          padding: 10px;
-          position: absolute;
-          border: 1px solid #eee;
-          background:#fff;
-          overflow:auto;
-      }
-      #view-box .item .coor { width: 10px; height: 10px; overflow: hidden; cursor: se-resize; position: absolute; right: 0; bottom: 0; background-color: #09C; }
-      #imageDialog{
-          min-height:300px;
-          display:flex;
-          justify-content: flex-start;
-          align-items: center;	
-          flex-wrap: wrap;	
-          align-content: stretch;
-      }
-      #videoDialog{
-        min-height:300px;
-      }
-      .img-box{
-          width:100px;
-          height:100px;
-          margin:5px;
-          cursor: pointer;
-          position: relative;
-          overflow: hidden;
-          border-radius: 10px;
-      }
-      .img-box .img-box-check{
-          position:absolute;
-          top:0;
-          left:0;
-          z-index:99;
-          background:rgba(0, 0, 0, 0.5);
-          color:#1ab394;
-          width:100%;
-          height:100%;
-          line-height: 100px;
-          text-align:center;
-          font-size: 36px;
-      }
-      #imageDialog .img-box:first-child, #imageDialog .img-box:nth-child(7n+1){
-          margin-left:0;
-      }
-      #imageDialog .img-box:nth-child(7n){
-          margin-right:0;
-      }
+#view-box .item{
+    padding: 10px;
+    position: absolute;
+    border: 1px solid #eee;
+    background:#fff;
+    overflow:auto;
+}
+#view-box .item .coor { width: 10px; height: 10px; overflow: hidden; cursor: se-resize; position: absolute; right: 0; bottom: 0; background-color: #09C; }
+#imageDialog{
+    min-height:300px;
+    display:flex;
+    justify-content: flex-start;
+    align-items: center;	
+    flex-wrap: wrap;	
+    align-content: stretch;
+}
+#videoDialog{
+min-height:300px;
+}
+.img-box{
+    width:100px;
+    height:100px;
+    margin:5px;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    border-radius: 10px;
+}
+.img-box .img-box-check{
+    position:absolute;
+    top:0;
+    left:0;
+    z-index:99;
+    background:rgba(0, 0, 0, 0.5);
+    color:#1ab394;
+    width:100%;
+    height:100%;
+    line-height: 100px;
+    text-align:center;
+    font-size: 36px;
+}
+#imageDialog .img-box:first-child, #imageDialog .img-box:nth-child(7n+1){
+    margin-left:0;
+}
+#imageDialog .img-box:nth-child(7n){
+    margin-right:0;
+}
 
 /* EDIT */
     #view-box{
@@ -87,6 +87,7 @@ body{
         border: 1px solid #eee;
         background:#fff;
         overflow:auto;
+        font-size:12px;
     }
     #view-box .item .coor { width: 10px; height: 10px; overflow: hidden; cursor: se-resize; position: absolute; right: 0; bottom: 0; background-color: #09C; }
     #imageDialog{
