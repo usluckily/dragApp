@@ -87,7 +87,12 @@ min-height:300px;
         border: 1px solid #eee;
         background:#fff;
         overflow:auto;
-        font-size:12px;
+    }
+    #view-box .item  * {
+        font-size:12px !important;
+    }
+    #view-box .item .card-el-row{
+        margin: 5px 0;
     }
     #view-box .item .coor { width: 10px; height: 10px; overflow: hidden; cursor: se-resize; position: absolute; right: 0; bottom: 0; background-color: #09C; }
     #imageDialog{
