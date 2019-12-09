@@ -41,8 +41,8 @@
                       <i class="el-icon-close"></i>
                     </span>
                 </div>
-                <br>
-                <el-row>
+                <!-- <br> -->
+                <el-row class="card-el-row">
                     <!-- image -->
                     <div v-if="i.type === 'image'">
                         <el-image
@@ -83,7 +83,7 @@
                             </el-radio-group>
                           </div>
                       </el-row>
-                      <el-row class="normal-flex">
+                      <el-row class="normal-flex card-el-row">
                         <div class="normal-flex">
                           <span>字号：</span>
                           <el-input-number size="mini" controls-position="right" v-model="i.font.size" min="0"></el-input-number>
@@ -103,19 +103,12 @@
                         &nbsp;&nbsp;
                         <div class="normal-flex">
                           <span>方向：</span>
-                          <el-switch
-                            :disabled="!i.font.scroll"
-                            v-model="i.font.direction"
-                            active-color="#18a689"
-                            inactive-color="#ff4949"
-                            active-value="left"
-                            active-text="left"
-                            inactive-value="right"
-                            inactive-text="right">
-                          </el-switch>
+                          <el-radio-group v-model="i.font.direction" :disabled="!i.font.scroll">
+                            <el-radio label="left">左</el-radio>
+                            <el-radio label="right">右</el-radio>
+                          </el-radio-group>
                         </div>
                       </el-row>
-                      <br>
                       <el-input type="textarea" v-model="i.value"></el-input>
                     </div>
 
@@ -439,7 +432,8 @@
           }
         },
         submit() {
-          let res = true
+          let res = true, 
+            submitFunc = this.templateId ? api.editTemplate : api.submitTemplate// 跟俊templateId来选择提交接口
           this.$refs['ruleForm'].validate((valid) => {
             if (valid) {
               
@@ -455,15 +449,17 @@
           let params = {
             ...this.submitParams,
             userId:this.userId || '',
+            id:this.templateId || undefined,
             pageLayout:JSON.stringify({
               itemList:this.itemList,
               editW:this.boxWidth,
               editH:this.boxHeight
             })
           }
-          params['submitParams'] = this.screenTypeMap[this.screenType]
+          params['screenModel'] = this.screenTypeMap[this.screenType]
           params['type'] = this.screenType
-          api.submitTemplate(params).then(res => {
+
+          submitFunc(params).then(res => {
             if(res.code !== 0) {
               this.$message.error(res.msg)
             }else{
@@ -490,6 +486,8 @@
         getTemplateInfo(id) {
           api.getTemplateInfo(id).then(res => {
             this.itemList = JSON.parse(res.pageLayout).itemList
+            this.submitParams.name = res.name
+            this.submitParams.infoDesc = res.infoDesc
             this.$nextTick(() => {
               this.init()
             })
