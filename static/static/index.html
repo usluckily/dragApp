@@ -1,17 +1,14 @@
 <!DOCTYPE html>
-<html>
-  <head>
+<html lang="zh_CN" xmlns:th="http://www.thymeleaf.org" xmlns:shiro="http://www.pollix.at/thymeleaf/shiro">
+   <head th:include="screen/include :: header"> 
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1.0">
-    <link rel="stylesheet" href="./css/element-ui.css">
-    <link rel="stylesheet" href="./css/element-reset.css">
-    <link rel="stylesheet" href="./css/base.css">
     <title>app</title>
   </head>
   <body>
     <div id="app">
       <!-- 隐藏域 -->
-      <input type="hidden"  id="templateId" name="templateId" th:value="${templateId}" style="display:none;">
+      <input type="hidden"  id="id" name="id" th:value="${templateId}" style="display:none;">
       <input type="hidden"  id="userId" name="userId" th:value="${userId}" style="display:none;">
 
       <div style="padding:20px;">
@@ -41,8 +38,8 @@
                       <i class="el-icon-close"></i>
                     </span>
                 </div>
-                <br>
-                <el-row>
+                <!-- <br> -->
+                <el-row class="card-el-row">
                     <!-- image -->
                     <div v-if="i.type === 'image'">
                         <el-image
@@ -73,7 +70,17 @@
 
                     <!-- text -->
                     <div v-if="i.type === 'text'">
-                      <el-row class="normal-flex">
+                      <el-row>
+                          <div class="normal-flex">
+                            <span>位置：</span>
+                            <el-radio-group v-model="i.font.site">
+                              <el-radio label="left">居左</el-radio>
+                              <el-radio label="center">居中</el-radio>
+                              <el-radio label="right">居右</el-radio>
+                            </el-radio-group>
+                          </div>
+                      </el-row>
+                      <el-row class="normal-flex card-el-row">
                         <div class="normal-flex">
                           <span>字号：</span>
                           <el-input-number size="mini" controls-position="right" v-model="i.font.size" min="0"></el-input-number>
@@ -93,28 +100,12 @@
                         &nbsp;&nbsp;
                         <div class="normal-flex">
                           <span>方向：</span>
-                          <el-switch
-                            :disabled="!i.font.scroll"
-                            v-model="i.font.direction"
-                            active-color="#18a689"
-                            inactive-color="#ff4949"
-                            active-value="left"
-                            active-text="left"
-                            inactive-value="right"
-                            inactive-text="right">
-                          </el-switch>
-                        </div>
-                        &nbsp;&nbsp;
-                        <div class="normal-flex">
-                          <span>位置：</span>
-                          <el-radio-group v-model="i.font.site">
-                            <el-radio label="left">居左</el-radio>
-                            <el-radio label="center">居中</el-radio>
-                            <el-radio label="right">居右</el-radio>
+                          <el-radio-group v-model="i.font.direction" :disabled="!i.font.scroll">
+                            <el-radio label="left">左</el-radio>
+                            <el-radio label="right">右</el-radio>
                           </el-radio-group>
                         </div>
                       </el-row>
-                      <br>
                       <el-input type="textarea" v-model="i.value"></el-input>
                     </div>
 
@@ -126,7 +117,7 @@
                     </div>
                 </el-row>
 
-                <el-row style="position:absolute;bottom:10px;font-size:12px;">
+                <el-row style="position:absolute;bottom:10px;font-size:12px;" class="card-posi-size">
                   <!-- <div>
                     W:<el-input-number size="mini" min="0" controls-position="right" v-model="i.width"></el-input-number>
                   </div>
@@ -139,8 +130,10 @@
                   <div>
                     T:<el-input-number size="mini" min="0" controls-position="right" v-model="i.top"></el-input-number>
                   </div> -->
-                  W:{{i.width | scaleFilter(scale)}}&nbsp;&nbsp;H:{{i.height | scaleFilter(scale)}}
-                  &nbsp;&nbsp;L:{{i.left | scaleFilter(scale)}}&nbsp;&nbsp;T:{{i.top | scaleFilter(scale)}}
+                  W:<input type="number" v-model='i.width' class='simple-input'/>({{i.width | scaleFilter(scale)}})&nbsp;
+                  H:<input type="number" v-model='i.height' class='simple-input'/>({{i.height | scaleFilter(scale)}})&nbsp;
+                  L:<input type="number" v-model='i.left' class='simple-input'/>({{i.left | scaleFilter(scale)}})&nbsp;
+                  T:<input type="number" v-model='i.top' class='simple-input'/>({{i.top | scaleFilter(scale)}})&nbsp;
                 </el-row>
 
                 <!--  -->
@@ -218,8 +211,9 @@
         </el-dialog>
       </div>
     </div>
+	<div th:include="screen/include :: footer"></div>
   </body>
-  <script src="./js/vue.min.js"></script>
+ <script src="./js/vue.min.js"></script>
   <script src="./js/element-ui.js"></script>
   <script src="./js/jquery-1.11.0.min.js"></script>
   <script src="./js/drag.js"></script>
@@ -267,12 +261,12 @@
           //mock
           imageUrls: [],
           videoList: [],
-          templateId:'',
+          id:'',
           userId:''
         }
       },
       created() {
-        this.templateId = document.getElementById('templateId').value
+        this.id = document.getElementById('id').value
         this.userId = document.getElementById('userId').value
         api.getImageList().then(res => {
           this.imageUrls = res.rows.filter(item => {
@@ -289,8 +283,8 @@
         this.boxNode = document.getElementById('view-box')
         this.boxNodeOffsetTop = this.boxNode.offsetTop
         this.boxNodeOffsetLeft = this.boxNode.offsetLeft
-        if(this.templateId){
-          this.getTemplateInfo(this.templateId)
+        if(this.id){
+          this.getTemplateInfo(this.id)
         }else{
           this.init()
         }
@@ -345,7 +339,14 @@
                 y = e.pageY - offset.top + boxNodeOffsetTop
                 
                 this.posix = {'x': x + 1, 'y': y + 0.5};//连点会有位移，这里暂时这样修正一下
-                $.extend(document, {'move': true, 'move_target': this});
+                $.extend(document, {
+                  'move': true, 
+                  'move_target': this, 
+                  'boxWidth': parseFloat(vm.boxWidth).toFixed(2), 
+                  'boxHeight': parseFloat(vm.boxHeight).toFixed(2),
+                  'itemW':parseFloat($box.outerWidth()).toFixed(2),
+                  'itemH':parseFloat($box.outerHeight()).toFixed(2)
+                });
             }).on('mousedown', coorId, function(e) {
                 var posix = {
                         'w': $box.width(), 
@@ -355,6 +356,9 @@
                     };
                 
                 $.extend(document, {'move': true, 'call_down': function(e) {
+                  if(e.pageX - vm.boxNodeOffsetLeft > this.boxWidth || e.pageY - vm.boxNodeOffsetTop > this.boxHeight){
+                    return
+                  }
                     $box.css({
                         'width': Math.max(30, e.pageX - posix.x + posix.w + 20),
                         'height': Math.max(30, e.pageY - posix.y + posix.h + 20)
@@ -431,7 +435,8 @@
           }
         },
         submit() {
-          let res = true
+          let res = true, 
+            submitFunc = this.id ? api.editTemplate : api.submitTemplate// 跟俊templateId来选择提交接口
           this.$refs['ruleForm'].validate((valid) => {
             if (valid) {
               
@@ -447,15 +452,17 @@
           let params = {
             ...this.submitParams,
             userId:this.userId || '',
+            id:this.id || undefined,
             pageLayout:JSON.stringify({
               itemList:this.itemList,
               editW:this.boxWidth,
               editH:this.boxHeight
             })
           }
-          params['submitParams'] = this.screenTypeMap[this.screenType]
+          params['screenModel'] = this.screenTypeMap[this.screenType]
           params['type'] = this.screenType
-          api.submitTemplate(params).then(res => {
+
+          submitFunc(params).then(res => {
             if(res.code !== 0) {
               this.$message.error(res.msg)
             }else{
@@ -477,11 +484,13 @@
             editW:this.boxWidth,
             editH:this.boxHeight
           }))
-          window.top.open('./view.html')
+          window.top.open('/sys/infoModel/addview')
         },
         getTemplateInfo(id) {
           api.getTemplateInfo(id).then(res => {
             this.itemList = JSON.parse(res.pageLayout).itemList
+            this.submitParams.name = res.name
+            this.submitParams.infoDesc = res.infoDesc
             this.$nextTick(() => {
               this.init()
             })
@@ -547,7 +556,6 @@
       },
       filters:{
         scaleFilter(val,scale) {
-          console.log(val, scale)
           return parseInt(val * scale) + 'px'
         }
       }

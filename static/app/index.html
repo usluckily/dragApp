@@ -120,7 +120,7 @@
                     </div>
                 </el-row>
 
-                <el-row style="position:absolute;bottom:10px;font-size:12px;">
+                <el-row style="position:absolute;bottom:10px;font-size:12px;" class="card-posi-size">
                   <!-- <div>
                     W:<el-input-number size="mini" min="0" controls-position="right" v-model="i.width"></el-input-number>
                   </div>
@@ -133,9 +133,10 @@
                   <div>
                     T:<el-input-number size="mini" min="0" controls-position="right" v-model="i.top"></el-input-number>
                   </div> -->
-                  W:<input type="number" v-model='i.width' class='simple-input'/>px&nbsp;&nbsp;
-                  W:{{i.width | scaleFilter(scale)}}&nbsp;&nbsp;H:{{i.height | scaleFilter(scale)}}
-                  &nbsp;&nbsp;L:{{i.left | scaleFilter(scale)}}&nbsp;&nbsp;T:{{i.top | scaleFilter(scale)}}
+                  W:<input type="number" v-model='i.width' class='simple-input'/>({{i.width | scaleFilter(scale)}})&nbsp;
+                  H:<input type="number" v-model='i.height' class='simple-input'/>({{i.height | scaleFilter(scale)}})&nbsp;
+                  L:<input type="number" v-model='i.left' class='simple-input'/>({{i.left | scaleFilter(scale)}})&nbsp;
+                  T:<input type="number" v-model='i.top' class='simple-input'/>({{i.top | scaleFilter(scale)}})&nbsp;
                 </el-row>
 
                 <!--  -->

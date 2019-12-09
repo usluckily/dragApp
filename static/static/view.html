@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh_CN" xmlns:th="http://www.thymeleaf.org" xmlns:shiro="http://www.pollix.at/thymeleaf/shiro">
-  <head>
+  <head th:include="screen/include :: header"> 
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1.0">
     <link rel="stylesheet" href="./css/element-ui.css">
@@ -10,7 +10,9 @@
   </head>
   <body>
     <div id="app">
-    <input type="hidden"  id="id" name="id" th:value="${id}" style="display:none;">
+        <!-- 隐藏域 -->
+        <input type="hidden"  id="id" name="id" th:value="${id}" style="display:none;">
+        <input type="hidden"  id="textContent" name="textContent" th:value="${textContent}" style="display:none;">
       <div>
         <div style="position:fixed;top:0;left:0;z-index:9999" id="clickTrigger" @click="fullScreen">
             <!-- <el-button @click="emitClose" type="danger">关闭</el-button> -->
@@ -66,10 +68,12 @@
         </div>
     </div> 
     </div>
+	<div th:include="screen/include :: footer"></div>
   </body>
-  <script src="./js/vue.min.js"></script>
+<script src="./js/vue.min.js"></script>
   <script src="./js/element-ui.js"></script>
   <script src="./js/jquery-1.11.0.min.js"></script>
+  <script src="./js/drag.js"></script>
   <script src="./js/api.js"></script>
   <script>
     new Vue({
@@ -125,7 +129,16 @@
             document.documentElement.requestFullscreen();
         },
         setLocalItemList() {
-          return this.templateInfo.pageLayout.itemList
+            let textContent = document.getElementById('textContent').value
+            if(textContent){
+                this.templateInfo.pageLayout.itemList.map(item => {
+                    if(item.type === 'text'){
+                        item.value = textContent
+                    }
+                    return textContent
+                })
+            }
+            return this.templateInfo.pageLayout.itemList
         },
         styleComp(item) {
             let widthScale = window.screen.width / parseFloat(this.localEditW),

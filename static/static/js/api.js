@@ -101,5 +101,22 @@ let api = {
                 }
             })
         })
+    },
+    editTemplate(data) {
+        return new Promise((resolve, reject) => {
+            $.ajax({
+                type:"post",
+                url:proxy+'/sys/infoModel/update',
+                dataType:'json',
+                contentType:'application/x-www-form-urlencoded',
+                data:data,
+                success(data){
+                    resolve(data)
+                },
+                error(err){
+                    reject(err)
+                }
+            })
+        })
     }
 }

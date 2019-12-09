@@ -5,13 +5,23 @@
 $(function() {
 	$(document).mousemove(function(e) {
 		if (!!this.move) {
-			var posix = !document.move_target ? {'x': 0, 'y': 0} : document.move_target.posix,
-				callback = document.call_down || function() {
-					$(this.move_target).css({
-						'top': e.pageY - posix.y,
-						'left': e.pageX - posix.x
-					});
-				};
+			var posix = !document.move_target ? {'x': 0, 'y': 0} : document.move_target.posix
+
+			var xNum = e.pageX - posix.x + parseFloat(this.itemW), 
+				yNum = e.pageY - posix.y + parseFloat(this.itemH)
+
+			xNum = xNum > this.boxWidth ? this.boxWidth - parseInt(this.itemW) : 
+				xNum <= parseInt(this.itemW) ? 0 : null
+				
+			yNum = yNum > this.boxHeight ? this.boxHeight - parseInt(this.itemH) : 
+				yNum <= parseInt(this.itemH) ? 0 : null
+
+			var callback = document.call_down || function() {
+				$(this.move_target).css({
+					'top': yNum === null ? (e.pageY - posix.y) : yNum,
+					'left': xNum === null ? (e.pageX - posix.x) : xNum
+				});
+			};
 
 			callback.call(this, e, posix);
 		}
