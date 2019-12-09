@@ -133,6 +133,7 @@
                   <div>
                     T:<el-input-number size="mini" min="0" controls-position="right" v-model="i.top"></el-input-number>
                   </div> -->
+                  W:<input type="number" v-model='i.width' class='simple-input'/>px&nbsp;&nbsp;
                   W:{{i.width | scaleFilter(scale)}}&nbsp;&nbsp;H:{{i.height | scaleFilter(scale)}}
                   &nbsp;&nbsp;L:{{i.left | scaleFilter(scale)}}&nbsp;&nbsp;T:{{i.top | scaleFilter(scale)}}
                 </el-row>
@@ -356,6 +357,9 @@
                     };
                 
                 $.extend(document, {'move': true, 'call_down': function(e) {
+                  if(e.pageX - vm.boxNodeOffsetLeft > this.boxWidth || e.pageY - vm.boxNodeOffsetTop > this.boxHeight){
+                    return
+                  }
                     $box.css({
                         'width': Math.max(30, e.pageX - posix.x + posix.w + 20),
                         'height': Math.max(30, e.pageY - posix.y + posix.h + 20)

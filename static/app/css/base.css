@@ -138,6 +138,19 @@ min-height:300px;
         margin-right:0;
     }
 
+    .simple-input{
+        width:30px;
+        border:none;
+        border-bottom:1px solid #ccc;
+    }
+    .simple-input::-webkit-outer-spin-button,
+    .simple-input::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+    }
+    .simple-input[type="number"]{
+        -moz-appearance: textfield;
+    }
+
 /* view */
     .box{
         /* border:1px solid #ccc; */
