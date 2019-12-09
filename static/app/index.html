@@ -346,7 +346,14 @@
                 y = e.pageY - offset.top + boxNodeOffsetTop
                 
                 this.posix = {'x': x + 1, 'y': y + 0.5};//连点会有位移，这里暂时这样修正一下
-                $.extend(document, {'move': true, 'move_target': this});
+                $.extend(document, {
+                  'move': true, 
+                  'move_target': this, 
+                  'boxWidth': parseFloat(vm.boxWidth).toFixed(2), 
+                  'boxHeight': parseFloat(vm.boxHeight).toFixed(2),
+                  'itemW':parseFloat($box.outerWidth()).toFixed(2),
+                  'itemH':parseFloat($box.outerHeight()).toFixed(2)
+                });
             }).on('mousedown', coorId, function(e) {
                 var posix = {
                         'w': $box.width(), 
@@ -548,7 +555,6 @@
       },
       filters:{
         scaleFilter(val,scale) {
-          console.log(val, scale)
           return parseInt(val * scale) + 'px'
         }
       }
