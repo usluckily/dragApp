@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="zh_CN" xmlns:th="http://www.thymeleaf.org" xmlns:shiro="http://www.pollix.at/thymeleaf/shiro">
+  <head th:include="screen/include :: header"> 
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <link rel="stylesheet" href="./css/element-ui.css">
+    <link rel="stylesheet" href="./css/element-reset.css">
+    <link rel="stylesheet" href="./css/base.css">
+    <title>app</title>
+  </head>
+  <body>
+    <div id="app">
+        <!-- 隐藏域 -->
+        <input type="hidden"  id="id" name="id" th:value="${id}" style="display:none;">
+        <input type="hidden"  id="textContent" name="textContent" th:value="${textContent}" style="display:none;">
+      <div>
+        <div style="position:fixed;top:0;left:0;z-index:9999" id="clickTrigger" @click="fullScreen">
+            <!-- <el-button @click="emitClose" type="danger">关闭</el-button> -->
+        </div>
+    
+        <div id="main-content" :class="{'grid-box':status == 'auto'}" @click="emitClose">
+            <div class="box"
+            v-for="(i, index) in localItemList" 
+            :key="index" 
+            :style="styleComp(i)">
+                <!-- swiper -->
+                <el-carousel 
+                trigger="click" 
+                :height="heightScale(i.height) + 'px'"
+                indicator-position="none"
+                v-if="i.type == 'swiper'">
+                    <el-carousel-item height="100%" v-for="url in i.value" :key="url">
+                        <el-image :src="url" fit="fill" style="width:100%;height:100%;"></el-image>
+                    </el-carousel-item>
+                </el-carousel>
+    
+                <!-- video -->
+                <video 
+                autoplay 
+                loop
+                :src="i.value[0]" 
+                v-else-if="i.type == 'video'" 
+                style="width:100%;height:100%;object-fit:fill;background:#000;">
+                    视频加载失败
+                </video>
+
+                <!-- <embed 
+                v-else-if="i.type == 'video'" 
+                style="width:100%;height:100%;object-fit:fill;background:#000;"
+                :src="i.value[0]"  /> -->
+    
+                <!-- text -->
+                <div 
+                class="text-box"
+                :style="{'font-size':i.font.size+'px', 'color':i.font.color, 'background':i.font.bgColor,'text-align':i.font.site}"
+                v-else-if="i.type == 'text'">
+                    <marquee style="width:100%;" :direction="i.font.direction" v-if="i.font.scroll">
+                        <p>{{i.value}}</p>
+                    </marquee>
+                    <div style="width:100%;" v-else>
+                        <p>{{i.value}}</p>
+                    </div>
+                </div>
+    
+                <!-- image -->
+                <el-image :src="i.value[0]" fit="fill" style="width:100%;height:100%;" v-else-if="i.type === 'image'"></el-image>
+            </div>
+        </div>
+    </div> 
+    </div>
+	<div th:include="screen/include :: footer"></div>
+  </body>
+<script src="./js/vue.min.js"></script>
+  <script src="./js/element-ui.js"></script>
+  <script src="./js/jquery-1.11.0.min.js"></script>
+  <script src="./js/drag.js"></script>
+  <script src="./js/api.js"></script>
+  <script>
+    new Vue({
+      el:'#app',
+      data(){
+        return {
+            content:{},
+            contentGrid:[2,2],
+            templateInfo:{
+                name:'',
+                screenModel:'',
+                type:'',
+                infoDesc:'',
+                textContent:'',
+                createTime:'',
+                pageLayout:{}
+            },
+            localItemList:[]
+        }
+    },
+    beforeCreate() {
+        
+    },
+    created() {
+        
+    },
+    mounted() {
+        let id = document.getElementById('id').value
+        if(id){
+            api.getTemplateInfo(id).then( res => {
+                // this.templateInfo = Object.assign(this.templateInfo, res)
+                this.templateInfo.pageLayout = JSON.parse(res.pageLayout)
+                this.localItemList = this.setLocalItemList()
+            })
+        }else{
+            this.templateInfo.pageLayout = JSON.parse(localStorage.getItem('pageLayout'))
+            this.localItemList = this.setLocalItemList()
+        }
+    },
+    beforeDestroy() {
+        
+    },
+    computed:{
+        localEditW() {
+            return this.editW || this.templateInfo.pageLayout.editW
+        },
+        localEditH() {
+            return this.editH || this.templateInfo.pageLayout.editH
+        }
+    },
+    methods:{
+        fullScreen() {
+            document.documentElement.requestFullscreen();
+        },
+        setLocalItemList() {
+            let textContent = document.getElementById('textContent').value
+            if(textContent){
+                this.templateInfo.pageLayout.itemList.map(item => {
+                    if(item.type === 'text'){
+                        item.value = textContent
+                    }
+                    return textContent
+                })
+            }
+            return this.templateInfo.pageLayout.itemList
+        },
+        styleComp(item) {
+            let widthScale = window.screen.width / parseFloat(this.localEditW),
+                heightScale = window.screen.height / parseFloat(this.localEditH)
+            return {
+                width:item.width * widthScale + 'px',
+                height:item.height * heightScale + 'px',
+                position:this.status != 'auto' ? 'absolute' : 'relative',
+                top: item.top * heightScale + 'px',
+                left: item.left * widthScale + 'px',
+            }
+        },
+        heightScale(val){
+            let heightScale = window.screen.height / parseFloat(this.localEditH)
+            return val * heightScale
+        },
+        renderContent() {
+            this.content = document.querySelector('#content')
+            let child = ''
+
+        },
+        emitClose() {
+            document.exitFullscreen();
+            this.$emit('close')
+        }
+    }
+    })
+  </script>
+</html>

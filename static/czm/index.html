@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="zh_CN" xmlns:th="http://www.thymeleaf.org" xmlns:shiro="http://www.pollix.at/thymeleaf/shiro">
+   <head th:include="screen/include :: header"> 
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <title>app</title>
+  </head>
+  <body>
+    <div id="app">
+      <!-- 隐藏域 -->
+      <input type="hidden"  id="id" name="id" th:value="${templateId}" style="display:none;">
+      <input type="hidden"  id="userId" name="userId" th:value="${userId}" style="display:none;">
+
+      <div style="padding:20px;">
+        <el-row>
+            <el-select v-model="screenType" placeholder="选择屏幕比例">
+                <el-option :value="key" :label="value" v-for="(value, key) in screenTypeMap" :key="key"></el-option>
+            </el-select>
+            <el-button @click="addNode" type="success">创建</el-button>
+            <el-button @click="viewTemplate" type="success">预览</el-button>
+        </el-row>
+
+        <br/>
+
+        <div class="content" :class="{'auto':status==='auto'}" id="view-box" :style="{width:boxWidth,height:boxHeight}">
+            <!-- card -->
+            <div class="item"
+            v-for="(i, index) in itemList" 
+            :key="index" 
+            :id="i.id"
+            :style="{width:i.width + 'px',height:i.height + 'px',zIndex:i.zIndex,top:i.top + 'px',left:i.left + 'px'}">
+                <div class="between-flex">
+                    <el-select v-model="i.type" size="mini" @change="resetBox(index)">
+                      <!-- text类型只允许存在一个 -->
+                      <el-option :value="j" :label="j" v-for="(j, index) in localItemTypeList" :key="index" :disabled="hasText && j=='text'"></el-option>
+                    </el-select>
+                    <span @click="removeItems(index)" style="cursor:pointer;">
+                      <i class="el-icon-close"></i>
+                    </span>
+                </div>
+                <!-- <br> -->
+                <el-row class="card-el-row">
+                    <!-- image -->
+                    <div v-if="i.type === 'image'">
+                        <el-image
+                        v-if="i.value[0]"
+                        style="width: 20px; height: 20px;"
+                        :src="i.value[0]"
+                        fit="cover"></el-image>
+                        <br>
+                        <el-button type="success" size="mini" @click="showImage(index)">选择图片</el-button>
+                    </div>
+
+                    <!-- swiper -->
+                    <div v-if="i.type === 'swiper'">
+                        <el-row class="normal-flex">
+                            <div class="img-box" 
+                            v-for="(j, jIndex) in i.value"
+                            :key="jIndex"
+                            style="width:20px;height:20px;border-radius:5px;margin:0;">
+                                <el-image
+                                style="width: 100%; height: 100%;"
+                                :src="j"
+                                fit="cover"></el-image>
+                            </div>
+                        </el-row>
+                        <br>
+                        <el-button type="success" size="mini" @click="showImage(index)">选择图片</el-button>
+                    </div>
+
+                    <!-- text -->
+                    <div v-if="i.type === 'text'">
+                      <el-row>
+                          <div class="normal-flex">
+                            <span>位置：</span>
+                            <el-radio-group v-model="i.font.site">
+                              <el-radio label="left">居左</el-radio>
+                              <el-radio label="center">居中</el-radio>
+                              <el-radio label="right">居右</el-radio>
+                            </el-radio-group>
+                          </div>
+                      </el-row>
+                      <el-row class="normal-flex card-el-row">
+                        <div class="normal-flex">
+                          <span>字号：</span>
+                          <el-input-number size="mini" controls-position="right" v-model="i.font.size" min="0"></el-input-number>
+                        </div>
+                        &nbsp;&nbsp;
+                        <div class="normal-flex">
+                          <span>颜色：</span><el-color-picker v-model="i.font.color" size="mini"></el-color-picker>
+                        </div>
+                        &nbsp;&nbsp;
+                        <div class="normal-flex">
+                          <span>背景：</span><el-color-picker v-model="i.font.bgColor" size="mini"></el-color-picker>
+                        </div>
+                        &nbsp;&nbsp;
+                        <div class="normal-flex">
+                          <span>滚动：</span><el-checkbox v-model="i.font.scroll"></el-checkbox>
+                        </div>
+                        &nbsp;&nbsp;
+                        <div class="normal-flex">
+                          <span>方向：</span>
+                          <el-radio-group v-model="i.font.direction" :disabled="!i.font.scroll">
+                            <el-radio label="left">左</el-radio>
+                            <el-radio label="right">右</el-radio>
+                          </el-radio-group>
+                        </div>
+                      </el-row>
+                      <el-input type="textarea" v-model="i.value"></el-input>
+                    </div>
+
+                    <!-- video -->
+                    <div v-if="i.type === 'video'">
+                        <p style="font-size:12px;">{{i.name}}</p>
+                        <br>
+                        <el-button type="success" size="mini" @click="showVideo(index)">选择视频</el-button>
+                    </div>
+                </el-row>
+
+                <el-row style="position:absolute;bottom:10px;font-size:12px;" class="card-posi-size">
+                  <!-- <div>
+                    W:<el-input-number size="mini" min="0" controls-position="right" v-model="i.width"></el-input-number>
+                  </div>
+                  <div>
+                    H:<el-input-number size="mini" min="0" controls-position="right" v-model="i.height"></el-input-number>
+                  </div>
+                  <div>
+                    L:<el-input-number size="mini" min="0" controls-position="right" v-model="i.left"></el-input-number>
+                  </div>
+                  <div>
+                    T:<el-input-number size="mini" min="0" controls-position="right" v-model="i.top"></el-input-number>
+                  </div> -->
+                  W:<input type="number" v-model='i.width' class='simple-input'/>({{i.width | scaleFilter(scale)}})&nbsp;
+                  H:<input type="number" v-model='i.height' class='simple-input'/>({{i.height | scaleFilter(scale)}})&nbsp;
+                  L:<input type="number" v-model='i.left' class='simple-input'/>({{i.left | scaleFilter(scale)}})&nbsp;
+                  T:<input type="number" v-model='i.top' class='simple-input'/>({{i.top | scaleFilter(scale)}})&nbsp;
+                </el-row>
+
+                <!--  -->
+                <div :id="i.coorId" class="coor" v-if="status !== 'auto'"></div>
+            </div>
+        </div>
+
+        <br>
+
+        <el-row style="width:400px;">
+          <el-form :rules="submitRules" ref="ruleForm" :model="submitParams">
+            <el-form-item label="" prop="name">
+              <el-input v-model="submitParams.name" placeholder="名称"></el-input>
+            </el-form-item>
+            <el-form-item label="">
+              <el-input disabled v-model="submitParams.type" placeholder="类型"></el-input>
+            </el-form-item>
+            <el-form-item label="">
+              <el-input disabled v-model="submitParams.screenModel" placeholder="screenModel"></el-input>
+            </el-form-item>
+            <el-form-item label="">
+              <el-input v-model="submitParams.infoDesc" placeholder="描述"></el-input>
+            </el-form-item>
+            <el-form-item label="">
+              <el-button type="success" @click="submit" :loading="submitLoading">保存模板</el-button>
+            </el-form-item>
+          </el-form>
+        </el-row>
+
+        <el-dialog
+            title="选择图片"
+            :visible.sync="imageDialogVisible"
+            width="800px">
+            <div id="imageDialog" style="min-height:300px">
+                <div class="img-box" v-for="(i, index) in localImgUrlList" :key="index" @click="chooseImage(index)">
+                    <div class="img-box-check" v-if="i.checked">
+                        <i class="el-icon-circle-check"></i>
+                    </div>
+                    
+                    <el-image
+                    style="width: 100%; height: 100%;"
+                    :src="i.url"
+                    :key="index"
+                    fit="cover">
+                    <div slot="error" class="image-slot">
+                        <i class="el-icon-picture-outline"></i>
+                    </div>  
+                    </el-image>
+                </div>
+            </div>
+            <span slot="footer" class="dialog-footer">
+            <el-button @click="imageDialogVisible = false">取 消</el-button>
+            <el-button type="success" @click="imageDialogVisible = false">确 定</el-button>
+            </span>
+        </el-dialog>
+
+        <el-dialog
+            title="选择视频"
+            :visible.sync="videoDialogVisible"
+            width="800px">
+            <div id="videoDialog" style="min-height:300px">
+              <div 
+              @click="chooseVideo(i, index)"
+              :class="{'checked':i.checked}"
+              style="margin-bottom:10px;" 
+              v-for="(i, index) in localVideoList" 
+              :key="index">
+                <p><i class="el-icon-circle-check"></i>&nbsp;&nbsp;{{i.fileName}}</p>
+              </div>
+            </div>
+            <span slot="footer" class="dialog-footer">
+            <el-button @click="videoDialogVisible = false">取 消</el-button>
+            <el-button type="success" @click="videoDialogVisible = false">确 定</el-button>
+            </span>
+        </el-dialog>
+      </div>
+    </div>
+	<div th:include="screen/include :: footer"></div>
+  </body>
+ <script src="./js/vue.min.js"></script>
+  <script src="./js/element-ui.js"></script>
+  <script src="./js/jquery-1.11.0.min.js"></script>
+  <script src="./js/drag.js"></script>
+  <script src="./js/api.js"></script>
+  <script>
+    new Vue({
+      el:'#app',
+      data(){
+        return {
+          submitLoading:false,
+          imageDialogVisible: false,
+          imageDialogLoading: {},
+          videoDialogVisible: false,
+          videoDialogLoading: {},
+          dialogVisible:false,
+          status: 'handle',
+          submitParams:{
+            name:'',
+            screenModel:'16:9',
+            type:'1920*1080',
+            infoDesc:'',
+            textContent:'',
+            createTime:'',
+            pageLayout:[]
+          },
+          submitRules:{
+            name:[
+              { required: true, message: '请输入名称', trigger: 'blur' },
+            ]
+          },
+          boxNode:{},
+          boxNodeOffsetTop: 0,
+          boxNodeOffsetLeft: 0,
+          screenType:'1920*1080',
+          screenTypeMap:{
+            '1920*1080':'16:9'
+          }, 
+          selectItemType: '',
+          localItemTypeList: ['image','swiper','text','video'],
+          itemList: [],
+          currentItemIndex:0,//当前选中的item
+          rowNum: '',
+          colNum: '',
+
+          //mock
+          imageUrls: [],
+          videoList: [],
+          id:'',
+          userId:''
+        }
+      },
+      created() {
+        this.id = document.getElementById('id').value
+        this.userId = document.getElementById('userId').value
+        api.getImageList().then(res => {
+          this.imageUrls = res.rows.filter(item => {
+            return item.fileType == '图片'
+          })
+        })
+        api.getVideoList().then(res => {
+          this.videoList = res.rows.filter(item => {
+            return item.fileType == '视频'
+          })
+        })
+      },
+      mounted() {
+        this.boxNode = document.getElementById('view-box')
+        this.boxNodeOffsetTop = this.boxNode.offsetTop
+        this.boxNodeOffsetLeft = this.boxNode.offsetLeft
+        if(this.id){
+          this.getTemplateInfo(this.id)
+        }else{
+          this.init()
+        }
+      },
+      methods: {
+        init() {
+          this.itemList.forEach((item,num) => {
+            this.setDrag('#item'+num, '#coor'+num, num)
+          })
+        },
+        addNode() {
+            let num = this.itemList.length
+            this.status = 'handle'
+            this.itemList.push({
+                type:'image',
+                id:'item'+num,
+                width:'300',
+                height:'180',
+                zIndex: num + 1,
+                coorId: 'coor'+num,
+                top: '',
+                left: '',
+                name: '',
+                font:{
+                  size:18,
+                  color:'#000',
+                  bgColor:'#fff',
+                  scroll:true,
+                  direction:'left',
+                  site:'center'
+                },
+                value: []
+            })
+            this.$nextTick(() => {
+                this.setDrag('#item'+num, '#coor'+num, num)
+            })
+        },
+        removeItems(index) {
+          this.$confirm('是否移除该模块?', '提示', {
+            confirmButtonText: '确定',
+            cancelButtonText: '取消',
+            type: 'warning'
+          }).then(() => {
+            this.itemList.splice(index, 1)
+          })
+        },
+        setDrag(dom, coorId, index) {
+            let boxNodeOffsetTop = this.boxNodeOffsetTop, boxNodeOffsetLeft = this.boxNodeOffsetLeft, vm = this
+            let $box = $(dom).mousedown(function(e) {
+                let offset = $(this).offset(), 
+                x = e.pageX - offset.left + boxNodeOffsetLeft, 
+                y = e.pageY - offset.top + boxNodeOffsetTop
+                
+                this.posix = {'x': x + 1, 'y': y + 0.5};//连点会有位移，这里暂时这样修正一下
+                $.extend(document, {
+                  'move': true, 
+                  'move_target': this, 
+                  'boxWidth': parseFloat(vm.boxWidth).toFixed(2), 
+                  'boxHeight': parseFloat(vm.boxHeight).toFixed(2),
+                  'itemW':parseFloat($box.outerWidth()).toFixed(2),
+                  'itemH':parseFloat($box.outerHeight()).toFixed(2)
+                });
+            }).on('mousedown', coorId, function(e) {
+                var posix = {
+                        'w': $box.width(), 
+                        'h': $box.height(), 
+                        'x': e.pageX, 
+                        'y': e.pageY
+                    };
+                
+                $.extend(document, {'move': true, 'call_down': function(e) {
+                  if(e.pageX - vm.boxNodeOffsetLeft > this.boxWidth || e.pageY - vm.boxNodeOffsetTop > this.boxHeight){
+                    return
+                  }
+                    $box.css({
+                        'width': Math.max(30, e.pageX - posix.x + posix.w + 20),
+                        'height': Math.max(30, e.pageY - posix.y + posix.h + 20)
+                    });
+                }});
+                return false;
+            }).on('mouseup',function(e){
+                let target = e.target
+                target = vm.getParentNode(target, 'item')
+
+                vm.itemList[index]['top'] = target.offsetTop
+                vm.itemList[index]['left'] = target.offsetLeft
+                vm.itemList[index]['width'] = target.offsetWidth
+                vm.itemList[index]['height'] = target.offsetHeight
+            })
+        },
+        getParentNode(target, parentClass) {
+            let resultTarget = target
+            if(resultTarget.className !== parentClass){
+                return this.getParentNode(resultTarget.parentNode, parentClass)
+            }else{
+                return resultTarget
+            }
+        },
+        showImage(index) {
+          this.currentItemIndex = index
+          this.imageDialogVisible = true
+          this.$nextTick(() => {
+            this.imageDialogLoading = this.$loading({target:'#imageDialog',text:'图片加载中'})
+            setTimeout(() => {
+              this.imageDialogLoading.close()
+            }, 500)
+          })
+        },
+        chooseImage(index) {
+          let current = this.currentItemIndex, 
+          url = this.localImgUrlList[index].url,
+          indexof = this.itemList[current].value.indexOf(url)
+          if(typeof this.itemList[current].value == 'string'){
+            this.itemList[current].value = []
+          }
+          //如果选择的item type为image，只能添加一张图片
+          if(this.itemList[current].type == 'image' && this.itemList[current].value.length >= 1){
+            return this.itemList[current].value = [url]
+          }
+          if(indexof === -1){
+            this.itemList[current].value.push(url)
+          }else{
+            this.itemList[current].value.splice(indexof,1)
+          }
+          
+        },
+        showVideo(index) {
+          this.currentItemIndex = index
+          this.videoDialogVisible = true
+          this.$nextTick(() => {
+            this.videoDialogLoading = this.$loading({target:'#videoDialog',text:'视频加载中'})
+            setTimeout(() => {
+              this.videoDialogLoading.close()
+            }, 500)
+          })
+        },
+        chooseVideo(item, index) {
+          let current = this.currentItemIndex
+          this.itemList[current].value = [item.fileUrl]
+          this.itemList[current].name = item.fileName
+        },
+        resetBox(index) {
+          let type = this.itemList[index].type
+          this.itemList[index].value = []
+          if(type == 'text'){
+            this.itemList[index].value = ''
+            this.itemList[index].width = parseInt(this.boxWidth)
+          }
+        },
+        submit() {
+          let res = true, 
+            submitFunc = this.id ? api.editTemplate : api.submitTemplate// 跟俊templateId来选择提交接口
+          this.$refs['ruleForm'].validate((valid) => {
+            if (valid) {
+              
+            } else {
+              
+              res = false;
+            }
+          });
+
+          if(!res) return
+
+          this.submitLoading = true
+          let params = {
+            ...this.submitParams,
+            userId:this.userId || '',
+            id:this.id || undefined,
+            pageLayout:JSON.stringify({
+              itemList:this.itemList,
+              editW:this.boxWidth,
+              editH:this.boxHeight
+            })
+          }
+          params['screenModel'] = this.screenTypeMap[this.screenType]
+          params['type'] = this.screenType
+
+          submitFunc(params).then(res => {
+            if(res.code !== 0) {
+              this.$message.error(res.msg)
+            }else{
+              this.$message.success(res.msg)
+            }
+            this.submitLoading = false
+
+            parent.reLoad();
+            let index = parent.layer.getFrameIndex(window.name)
+            parent.layer.close(index);
+          }).catch(e => {
+            this.$message.error('创建模板失败')
+            this.submitLoading = false
+          })
+        },
+        viewTemplate() {
+          localStorage.setItem('pageLayout', JSON.stringify({
+            itemList:this.itemList,
+            editW:this.boxWidth,
+            editH:this.boxHeight
+          }))
+          window.top.open('/sys/infoModel/addview')
+        },
+        getTemplateInfo(id) {
+          api.getTemplateInfo(id).then(res => {
+            this.itemList = JSON.parse(res.pageLayout).itemList
+            this.submitParams.name = res.name
+            this.submitParams.infoDesc = res.infoDesc
+            this.$nextTick(() => {
+              this.init()
+            })
+          })
+        }
+      },
+      computed: {
+        boxWidth() {
+          return 1000 + 'px'
+        },
+        boxHeight() {
+          let w = this.screenType.split('*')[0], h = this.screenType.split('*')[1]
+          return h/w*parseFloat(this.boxWidth) + 'px'
+        },
+        scale() {
+          return this.screenType.split('*')[0] / 1000
+        },
+        localImgUrlList() {
+          let current = this.currentItemIndex, 
+          remoteList = this.imageUrls, 
+          checkedList = this.itemList.length ? this.itemList[current].value : []
+
+          return remoteList.map((item, index) => {
+            let res = false
+            for(let i=0,len=checkedList.length;i<len;i++){
+              if(checkedList[i] === item.fileUrl){
+                res = true
+                break
+              }
+            }
+            return {
+              url:item.fileUrl,
+              checked:res
+            }
+          })
+        },
+        localVideoList() {
+          let arr = [
+            {name:'测试视频1', url:'https://demo-res.cloudinary.com/video/upload/w_0.4,a_20/l_cloudinary_icon,o_50,w_60,g_south_east,y_15,x_60/dog.webm'},
+            {name:'测试视频2', url:'https://demo-res.cloudinary.com/video/upload/w_0.4,a_20/l_cloudinary_icon,o_50,w_60,g_south_east,y_15,x_60/egg.webm'},
+            {name:'测试视频3', url:'https://demo-res.cloudinary.com/video/upload/w_0.4,a_20/l_cloudinary_icon,o_50,w_60,g_south_east,y_15,x_60/pig.webm'},
+          ]
+          arr = this.videoList
+          let current = this.currentItemIndex,
+          checkedUrl = this.itemList.length ? this.itemList[current].value[0] : ''
+          return arr.map(item => {
+            return {
+              ...item,
+              checked:checkedUrl === item.fileUrl ? true : false
+            }
+          })
+        },
+        hasText() {
+          let res = false
+          for(let i=0,len=this.itemList.length;i<len;i++){
+            if(this.itemList[i].type === 'text'){
+              res = true
+              break
+            }
+          }
+          return res
+        }
+      },
+      filters:{
+        scaleFilter(val,scale) {
+          return parseInt(val * scale) + 'px'
+        }
+      }
+    })
+  </script>
+</html>

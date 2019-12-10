@@ -1,0 +1,29 @@
+.el-button--success{
+    background: #1ab394 !important;
+    border-color: #1ab394 !important;
+}
+.el-button--success:focus, .el-button--success:hover{
+    background: #18a689 !important;
+    border-color: #18a689 !important;
+}
+.el-button--success:active{
+    background:#204d74 !important;
+    border-color: #122b40 !important;
+}
+.el-radio{
+    margin-right:10px !important;
+}
+.el-radio__input.is-checked+.el-radio__label{
+    color:#1ab394 !important;
+}
+.el-radio__input.is-checked .el-radio__inner{
+    border-color: #1ab394 !important;
+    background: #1ab394 !important;
+}
+.el-switch__label.is-active{
+    color:#1ab394 !important;
+}
+.el-checkbox__input.is-checked .el-checkbox__inner, .el-checkbox__input.is-indeterminate .el-checkbox__inner{
+    background-color: #1ab394 !important;
+    border-color: #1ab394 !important;
+}
