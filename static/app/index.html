@@ -109,7 +109,7 @@
                           </el-radio-group>
                         </div>
                       </el-row>
-                      <el-input type="textarea" v-model="i.value"></el-input>
+                      <el-input type="textarea" v-model="i.value" class="no-drag"></el-input>
                     </div>
 
                     <!-- video -->
@@ -133,10 +133,10 @@
                   <div>
                     T:<el-input-number size="mini" min="0" controls-position="right" v-model="i.top"></el-input-number>
                   </div> -->
-                  W:<input type="number" v-model='i.width' class='simple-input'/>({{i.width | scaleFilter(scale)}})&nbsp;
-                  H:<input type="number" v-model='i.height' class='simple-input'/>({{i.height | scaleFilter(scale)}})&nbsp;
-                  L:<input type="number" v-model='i.left' class='simple-input'/>({{i.left | scaleFilter(scale)}})&nbsp;
-                  T:<input type="number" v-model='i.top' class='simple-input'/>({{i.top | scaleFilter(scale)}})&nbsp;
+                  W:<input type="number" v-model='i.width' @input="wLimit(index)" class='simple-input no-drag'/>({{i.width | scaleFilter(scale)}})&nbsp;
+                  H:<input type="number" v-model='i.height' @input="hLimit(index)" class='simple-input no-drag'/>({{i.height | scaleFilter(scale)}})&nbsp;
+                  L:<input type="number" v-model='i.left' @input="lLimit(index)" class='simple-input no-drag'/>({{i.left | scaleFilter(scale)}})&nbsp;
+                  T:<input type="number" v-model='i.top' @input="tLimit(index)" class='simple-input no-drag'/>({{i.top | scaleFilter(scale)}})&nbsp;
                 </el-row>
 
                 <!--  -->
@@ -497,6 +497,30 @@
               this.init()
             })
           })
+        },
+        wLimit(index) {
+          let w = parseInt(this.boxWidth), val = this.itemList[index].width
+          if(val > w) this.itemList[index].width = w
+          if(val < 200) this.itemList[index].width = 200
+        },
+        hLimit(index) {
+          let h = parseInt(this.boxHeight), val = this.itemList[index].height
+          if(val > w) this.itemList[index].height = h
+          if(val < 150) this.itemList[index].height = 150
+        },
+        lLimit(index) {
+          let w = parseInt(this.boxWidth), 
+          iw = this.itemList[index].width
+          val = this.itemList[index].left
+          if(val > w-iw) this.itemList[index].left = w-iw
+          if(val < 0) this.itemList[index].left = 0
+        },
+        tLimit(index) {
+          let h = parseInt(this.boxHeight), 
+          ih = this.itemList[index].height
+          val = this.itemList[index].top
+          if(val > h-ih) this.itemList[index].top = h-ih
+          if(val < 0) this.itemList[index].top = 0
         }
       },
       computed: {

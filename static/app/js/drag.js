@@ -7,6 +7,9 @@ $(function() {
 		if (!!this.move) {
 			var posix = !document.move_target ? {'x': 0, 'y': 0} : document.move_target.posix
 
+			console.log(e.target.className)
+			if(e.target.className.indexOf('no-drag') > -1 || e.target.className.indexOf('el-textarea__inner') > -1) return
+
 			var xNum = e.pageX - posix.x + parseFloat(this.itemW), 
 				yNum = e.pageY - posix.y + parseFloat(this.itemH)
 
