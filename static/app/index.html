@@ -120,7 +120,7 @@
                     </div>
                 </el-row>
 
-                <el-row style="position:absolute;bottom:10px;font-size:12px;" class="card-posi-size">
+                <el-row style="position:absolute;bottom:10px;font-size:12px;" class="card-posi-size no-drag">
                   <!-- <div>
                     W:<el-input-number size="mini" min="0" controls-position="right" v-model="i.width"></el-input-number>
                   </div>
@@ -251,7 +251,8 @@
           boxNodeOffsetLeft: 0,
           screenType:'1920*1080',
           screenTypeMap:{
-            '1920*1080':'16:9'
+            '1920*1080':'16:9',
+            '1080*1920':'9:16'
           }, 
           selectItemType: '',
           localItemTypeList: ['image','swiper','text','video'],
@@ -294,19 +295,19 @@
       methods: {
         init() {
           this.itemList.forEach((item,num) => {
-            this.setDrag('#item'+num, '#coor'+num, num)
+            this.setDrag('#'+item.id, '#'+item.coorId, num)
           })
         },
         addNode() {
-            let num = this.itemList.length
+            let num = this.itemList.length, item = {}, time = new Date().getTime()
             this.status = 'handle'
-            this.itemList.push({
+            item = {
                 type:'image',
-                id:'item'+num,
+                id:'item'+time,
                 width:'300',
                 height:'180',
                 zIndex: num + 1,
-                coorId: 'coor'+num,
+                coorId: 'coor'+time,
                 top: '',
                 left: '',
                 name: '',
@@ -319,9 +320,10 @@
                   site:'center'
                 },
                 value: []
-            })
+            }
+            this.itemList.push(item)
             this.$nextTick(() => {
-                this.setDrag('#item'+num, '#coor'+num, num)
+              this.setDrag('#'+item.id, '#'+item.coorId, num)
             })
         },
         removeItems(index) {
@@ -331,6 +333,8 @@
             type: 'warning'
           }).then(() => {
             this.itemList.splice(index, 1)
+          }).catch(e => {
+
           })
         },
         setDrag(dom, coorId, index) {
@@ -358,7 +362,7 @@
                     };
                 
                 $.extend(document, {'move': true, 'call_down': function(e) {
-                  if(e.pageX - vm.boxNodeOffsetLeft > this.boxWidth || e.pageY - vm.boxNodeOffsetTop > this.boxHeight){
+                  if(e.pageX - vm.boxNodeOffsetLeft > parseInt(vm.boxWidth) || e.pageY - vm.boxNodeOffsetTop > parseInt(vm.boxHeight)){
                     return
                   }
                     $box.css({
@@ -368,13 +372,14 @@
                 }});
                 return false;
             }).on('mouseup',function(e){
-                let target = e.target
-                target = vm.getParentNode(target, 'item')
+              if(!vm.itemList[index]) return
+              let target = e.target
+              target = vm.getParentNode(target, 'item')
 
-                vm.itemList[index]['top'] = target.offsetTop
-                vm.itemList[index]['left'] = target.offsetLeft
-                vm.itemList[index]['width'] = target.offsetWidth
-                vm.itemList[index]['height'] = target.offsetHeight
+              vm.itemList[index]['top'] = target.offsetTop
+              vm.itemList[index]['left'] = target.offsetLeft
+              vm.itemList[index]['width'] = target.offsetWidth
+              vm.itemList[index]['height'] = target.offsetHeight
             })
         },
         getParentNode(target, parentClass) {
@@ -499,14 +504,14 @@
           })
         },
         wLimit(index) {
-          let w = parseInt(this.boxWidth), val = this.itemList[index].width
+          let w = parseFloat(this.boxWidth), val = this.itemList[index].width
           if(val > w) this.itemList[index].width = w
-          if(val < 200) this.itemList[index].width = 200
+          // if(val < 50) this.itemList[index].width = 50
         },
         hLimit(index) {
-          let h = parseInt(this.boxHeight), val = this.itemList[index].height
-          if(val > w) this.itemList[index].height = h
-          if(val < 150) this.itemList[index].height = 150
+          let h = parseFloat(this.boxHeight), val = this.itemList[index].height
+          if(val > h) this.itemList[index].height = h
+          // if(val < 50) this.itemList[index].height = 50
         },
         lLimit(index) {
           let w = parseInt(this.boxWidth), 
@@ -525,19 +530,32 @@
       },
       computed: {
         boxWidth() {
-          return 1000 + 'px'
+          let w = this.screenType.split('*')[0], h = this.screenType.split('*')[1]
+          if(w > h){
+            return 1000 + 'px'
+          }else {
+            return w/h*parseFloat(this.boxHeight) + 'px'
+          }
         },
         boxHeight() {
           let w = this.screenType.split('*')[0], h = this.screenType.split('*')[1]
-          return h/w*parseFloat(this.boxWidth) + 'px'
+          if(w > h){
+            return h/w*parseFloat(this.boxWidth) + 'px'
+          }else {
+            return 1000 + 'px'
+          }
         },
         scale() {
-          return this.screenType.split('*')[0] / 1000
+          if(parseFloat(this.boxWidth) > parseFloat(this.boxHeight)){
+            return this.screenType.split('*')[0] / 1000
+          }else{
+            return this.screenType.split('*')[1] / 1000
+          }
         },
         localImgUrlList() {
           let current = this.currentItemIndex, 
           remoteList = this.imageUrls, 
-          checkedList = this.itemList.length ? this.itemList[current].value : []
+          checkedList = this.itemList[current] ? this.itemList[current].value : []
 
           return remoteList.map((item, index) => {
             let res = false
@@ -561,7 +579,7 @@
           ]
           arr = this.videoList
           let current = this.currentItemIndex,
-          checkedUrl = this.itemList.length ? this.itemList[current].value[0] : ''
+          checkedUrl = this.itemList[current] ? this.itemList[current].value[0] : ''
           return arr.map(item => {
             return {
               ...item,

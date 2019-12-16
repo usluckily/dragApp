@@ -14,11 +14,11 @@
         <input type="hidden"  id="id" name="id" th:value="${id}" style="display:none;">
         <input type="hidden"  id="textContent" name="textContent" th:value="${textContent}" style="display:none;">
       <div>
-        <div style="position:fixed;top:0;left:0;z-index:9999" id="clickTrigger" @click="fullScreen">
+        <div style="position:fixed;top:0;left:0;z-index:9999" id="clickTrigger">
             <!-- <el-button @click="emitClose" type="danger">关闭</el-button> -->
         </div>
     
-        <div id="main-content" :class="{'grid-box':status == 'auto'}" @click="emitClose">
+        <div id="main-content" :class="{'grid-box':status == 'auto'}">
             <div class="box"
             v-for="(i, index) in localItemList" 
             :key="index" 
@@ -159,7 +159,7 @@
 
         },
         emitClose() {
-            document.exitFullscreen();
+            // document.exitFullscreen();
             this.$emit('close')
         }
     }
