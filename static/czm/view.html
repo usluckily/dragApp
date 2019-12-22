@@ -11,7 +11,7 @@
   <body>
     <div id="app">
         <!-- 隐藏域 -->
-        <input type="hidden"  id="id" name="id" th:value="${id}" style="display:none;">
+        <input type="hidden"  id="id" name="id" value="1576507001919784,1576490327583947" style="display:none;">
         <input type="hidden"  id="textContent" name="textContent" th:value="${textContent}" style="display:none;">
       <div>
         <!-- <div style="position:fixed;top:0;left:0;z-index:9999" id="clickTrigger" @click="fullScreen"> -->
@@ -91,7 +91,9 @@
                 createTime:'',
                 pageLayout:{}
             },
-            localItemList:[]
+            localItemList:[],
+            templateIds:[],
+            loopIndex:0
         }
     },
     beforeCreate() {
@@ -101,17 +103,22 @@
         
     },
     mounted() {
-        let id = document.getElementById('id').value
-        if(id){
+        this.templateIds = document.getElementById('id').value.split(',')
+        let id = this.templateIds instanceof Array ? this.templateIds[0] : this.templateIds
+        if(this.templateIds.length === 1){
             api.getTemplateInfo(id).then( res => {
                 // this.templateInfo = Object.assign(this.templateInfo, res)
                 this.templateInfo.pageLayout = JSON.parse(res.pageLayout)
                 this.localItemList = this.setLocalItemList()
             })
+        }else if (this.templateIds.length > 1) {
+            this.loopFunc(this.loopIndex)
         }else{
             this.templateInfo.pageLayout = JSON.parse(localStorage.getItem('pageLayout'))
             this.localItemList = this.setLocalItemList()
         }
+
+        this.resizeWatch()
     },
     beforeDestroy() {
         
@@ -125,6 +132,26 @@
         }
     },
     methods:{
+        loopFunc(index, time) {
+            let localTime = time || 0, id = this.templateIds[index]
+            if(!id) return
+            setTimeout(() =>{
+                api.getTemplateInfo(id).then( res => {
+                // this.templateInfo = Object.assign(this.templateInfo, res)
+                    this.templateInfo.pageLayout = JSON.parse(res.pageLayout)
+                    this.localItemList = this.setLocalItemList()
+                    this.loopIndex ++
+                    this.loopFunc(this.loopIndex, res.time)
+                })
+            }, localTime)
+        },
+        getRemoteTempInfo(id) {
+            api.getTemplateInfo(id).then( res => {
+                // this.templateInfo = Object.assign(this.templateInfo, res)
+                this.templateInfo.pageLayout = JSON.parse(res.pageLayout)
+                this.localItemList = this.setLocalItemList()
+            })
+        },
         fullScreen() {
             document.documentElement.requestFullscreen();
         },
@@ -141,8 +168,8 @@
             return this.templateInfo.pageLayout.itemList
         },
         styleComp(item) {
-            let widthScale = window.screen.width / parseFloat(this.localEditW),
-                heightScale = window.screen.height / parseFloat(this.localEditH)
+            let widthScale = document.body.offsetWidth / parseFloat(this.localEditW),
+                heightScale = document.body.offsetHeight / parseFloat(this.localEditH)
             return {
                 width:item.width * widthScale + 'px',
                 height:item.height * heightScale + 'px',
@@ -152,7 +179,7 @@
             }
         },
         heightScale(val){
-            let heightScale = window.screen.height / parseFloat(this.localEditH)
+            let heightScale = document.body.offsetHeight / parseFloat(this.localEditH)
             return val * heightScale
         },
         renderContent() {
@@ -163,6 +190,14 @@
         emitClose() {
             // document.exitFullscreen();
             // this.$emit('close')
+        },
+        resizeWatch() {
+            window.onresize = () => {
+                this.renderAgain()
+            }
+        },
+        renderAgain() {
+            this.$forceUpdate()
         }
     }
     })
