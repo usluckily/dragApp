@@ -441,9 +441,22 @@
             this.itemList[index].width = parseInt(this.boxWidth)
           }
         },
+        getLongestVideoTime() {
+          let res = 0
+          this.itemList.forEach(item => {
+            if(item.type == 'video'){
+              this.videoList.forEach(v => {
+                if(item.value[0] === v.fileUrl && parseInt(v.remarks) > res){
+                  res = parseInt(v.remarks)
+                }
+              })
+            }
+          })
+          return res
+        },
         submit() {
           let res = true, 
-            submitFunc = this.templateId ? api.editTemplate : api.submitTemplate// 跟俊templateId来选择提交接口
+            submitFunc = this.id ? api.editTemplate : api.submitTemplate// 跟据templateId来选择提交接口
           this.$refs['ruleForm'].validate((valid) => {
             if (valid) {
               
@@ -459,7 +472,8 @@
           let params = {
             ...this.submitParams,
             userId:this.userId || '',
-            id:this.templateId || undefined,
+            id:this.id || undefined,
+            remarks:this.getLongestVideoTime() || undefined,
             pageLayout:JSON.stringify({
               itemList:this.itemList,
               editW:this.boxWidth,
