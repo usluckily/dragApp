@@ -133,7 +133,7 @@
     },
     methods:{
         loopFunc(index, time) {
-            let localTime = time || 0, id = this.templateIds[index]
+            let localTime = time || 0, id = this.templateIds[index], len = this.templateIds.length
             if(!id) return
             setTimeout(() =>{
                 api.getTemplateInfo(id).then( res => {
@@ -141,7 +141,7 @@
                     this.templateInfo.pageLayout = JSON.parse(res.pageLayout)
                     this.localItemList = this.setLocalItemList()
                     this.$nextTick(()=>{
-                        this.loopIndex ++
+                        this.loopIndex <= len ? this.loopIndex ++ : this.loopIndex = 0
                         res.remarks ? this.loopFunc(this.loopIndex, res.remarks) : ''
                     })
                 })
