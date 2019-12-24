@@ -161,6 +161,10 @@
               <el-input v-model="submitParams.infoDesc" placeholder="描述"></el-input>
             </el-form-item>
             <el-form-item label="">
+              <el-input-number v-model="submitParams.remarks" :min="0" placeholder="时长"></el-input-number>
+              <span style="color:red;font-size:12px;" >(模板自动切换时长(秒)，为0不切换)</span>
+            </el-form-item>
+            <el-form-item label="">
               <el-button type="success" @click="submit" :loading="submitLoading">保存模板</el-button>
             </el-form-item>
           </el-form>
@@ -240,6 +244,7 @@
             infoDesc:'',
             textContent:'',
             createTime:'',
+            remarks:0,
             pageLayout:[]
           },
           submitRules:{
@@ -452,7 +457,16 @@
               })
             }
           })
-          return res += 3
+          return res === 0 ? 0 : res += 3
+        },
+        hasImage() {
+          let res = false
+          this.itemList.forEach(item => {
+            if(item.type === 'image'){
+              res = true
+            }
+          })
+          return res
         },
         submit() {
           let res = true, 
@@ -473,7 +487,6 @@
             ...this.submitParams,
             userId:this.userId || '',
             id:this.id || undefined,
-            remarks:this.getLongestVideoTime() || undefined,
             pageLayout:JSON.stringify({
               itemList:this.itemList,
               editW:this.boxWidth,
@@ -542,7 +555,19 @@
           if(val < 0) this.itemList[index].top = 0
         }
       },
+      watch:{
+        'remarksComp'(val) {
+          this.submitParams.remarks = val
+        }
+      },
       computed: {
+        remarksComp() {
+          let vT = this.getLongestVideoTime(),
+          hasImage = this.hasImage(),
+          res = 0
+          if(hasImage) res = 10
+          return vT > res ? vT : res
+        },
         boxWidth() {
           let w = this.screenType.split('*')[0], h = this.screenType.split('*')[1]
           if(w > h){
