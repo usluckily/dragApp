@@ -141,11 +141,11 @@
                     this.templateInfo.pageLayout = JSON.parse(res.pageLayout)
                     this.localItemList = this.setLocalItemList()
                     this.$nextTick(()=>{
-                        this.loopIndex <= len ? this.loopIndex ++ : this.loopIndex = 0
+                        this.loopIndex < len - 1 ? this.loopIndex ++ : this.loopIndex = 0
                         res.remarks ? this.loopFunc(this.loopIndex, res.remarks) : ''
                     })
                 })
-            }, localTime)
+            }, localTime * 1000)
         },
         fullScreen() {
             document.documentElement.requestFullscreen();

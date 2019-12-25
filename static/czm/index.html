@@ -275,7 +275,7 @@
         }
       },
       created() {
-        this.id = document.getElementById('id').value || '1577241487908952'
+        this.id = document.getElementById('id').value
         this.userId = document.getElementById('userId').value
         api.getImageList().then(res => {
           this.imageUrls = res.rows.filter(item => {
