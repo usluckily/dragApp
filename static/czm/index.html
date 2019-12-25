@@ -275,7 +275,7 @@
         }
       },
       created() {
-        this.id = document.getElementById('id').value
+        this.id = document.getElementById('id').value || '1577241487908952'
         this.userId = document.getElementById('userId').value
         api.getImageList().then(res => {
           this.imageUrls = res.rows.filter(item => {
@@ -523,10 +523,13 @@
         getTemplateInfo(id) {
           api.getTemplateInfo(id).then(res => {
             this.itemList = JSON.parse(res.pageLayout).itemList
-            this.submitParams.name = res.name
-            this.submitParams.infoDesc = res.infoDesc
             this.$nextTick(() => {
               this.init()
+            })
+            this.$nextTick(() => {
+              this.submitParams.name = res.name
+              this.submitParams.infoDesc = res.infoDesc
+              this.submitParams.remarks = res.remarks
             })
           })
         },
