@@ -37,8 +37,10 @@
                       <!-- text类型只允许存在一个 -->
                       <el-option :value="j" :label="j" v-for="(j, index) in localItemTypeList" :key="index" :disabled="hasText && j=='text'"></el-option>
                     </el-select>
-                    <span @click="removeItems(index)" style="cursor:pointer;">
-                      <i class="el-icon-close"></i>
+                    <span style="cursor:pointer;">
+                      <i class="el-icon-full-screen" @click="zoomItems(index)"></i>
+                      &nbsp;&nbsp;
+                      <i class="el-icon-close" @click="removeItems(index)"></i>
                     </span>
                 </div>
                 <!-- <br> -->
@@ -331,6 +333,22 @@
             this.$nextTick(() => {
               this.setDrag('#'+item.id, '#'+item.coorId, num)
             })
+        },
+        zoomItems(index) {
+          let itemW = this.itemList[index]['width'],
+              itemH = this.itemList[index]['height'],
+              type = this.itemList[index]['type']
+          if(itemW == parseInt(this.boxWidth) && itemH == parseInt(this.boxHeight)){
+            this.itemList[index]['height'] = 180
+            if(type == 'text'){
+              this.itemList[index]['width'] = 1000
+            }else{
+              this.itemList[index]['width'] = 300
+            }
+          }else{
+            this.itemList[index]['width'] = parseInt(this.boxWidth)
+            this.itemList[index]['height'] = parseInt(this.boxHeight)
+          }
         },
         removeItems(index) {
           this.$confirm('是否移除该模块?', '提示', {
